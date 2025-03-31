@@ -28,7 +28,9 @@ const AdminReleases = () => {
         `)
         .order('created_at', { ascending: false });
       
-      if (status && status !== "all") {
+      // Only apply status filter if it's a valid release status and not "all"
+      if (status && status !== "all" && 
+          (status === "Pending" || status === "Approved" || status === "Rejected")) {
         query = query.eq('status', status);
       }
       
