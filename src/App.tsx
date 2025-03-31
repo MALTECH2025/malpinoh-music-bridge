@@ -13,9 +13,11 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import Upload from "./pages/dashboard/Upload";
 import Releases from "./pages/dashboard/Releases";
 import Earnings from "./pages/dashboard/Earnings";
+import Settings from "./pages/dashboard/Settings";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminReleases from "./pages/admin/AdminReleases";
 import AdminWithdrawals from "./pages/admin/AdminWithdrawals";
+import AdminSettings from "./pages/admin/AdminSettings";
 import { AuthProvider } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
@@ -39,11 +41,13 @@ const App = () => (
             <Route path="/upload" element={<Upload />} />
             <Route path="/releases" element={<Releases />} />
             <Route path="/earnings" element={<Earnings />} />
+            <Route path="/settings" element={<Settings />} />
 
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/releases" element={<AdminReleases />} />
             <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
+            <Route path="/admin/settings" element={<AdminSettings />} />
 
             {/* Catch-all Route */}
             <Route path="*" element={<NotFound />} />
