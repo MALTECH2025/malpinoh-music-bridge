@@ -76,14 +76,15 @@ const ReleaseForm = () => {
       setIsSubmitting(true);
       
       let coverArtUrl = null;
+      let audioFileUrl = null;
       
       if (values.coverArt) {
         const fileExt = values.coverArt.name.split('.').pop();
-        const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+        const fileName = `${user.id}/${Date.now()}_cover.${fileExt}`;
         
         const { error: uploadError, data } = await supabase.storage
           .from('releases')
-          .upload(filePath, values.coverArt);
+          .upload(fileName, values.coverArt);
           
         if (uploadError) {
           throw new Error(`Error uploading cover art: ${uploadError.message}`);
@@ -91,9 +92,28 @@ const ReleaseForm = () => {
         
         const { data: { publicUrl } } = supabase.storage
           .from('releases')
-          .getPublicUrl(filePath);
+          .getPublicUrl(fileName);
           
         coverArtUrl = publicUrl;
+      }
+      
+      if (values.audioFile) {
+        const fileExt = values.audioFile.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}_audio.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('releases')
+          .upload(fileName, values.audioFile);
+          
+        if (uploadError) {
+          throw new Error(`Error uploading audio file: ${uploadError.message}`);
+        }
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('releases')
+          .getPublicUrl(fileName);
+          
+        audioFileUrl = publicUrl;
       }
       
       const { error } = await supabase
@@ -105,6 +125,7 @@ const ReleaseForm = () => {
           platforms: ["Spotify", "Apple Music", "Amazon Music"],
           status: "Pending",
           cover_art_url: coverArtUrl,
+          audio_file_url: audioFileUrl,
         });
         
       if (error) {
