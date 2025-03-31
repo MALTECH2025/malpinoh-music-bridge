@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -45,15 +44,14 @@ const AdminReleases = () => {
           artist: item.artists?.name || 'Unknown Artist',
           status: item.status as ReleaseStatus,
           coverArt: item.cover_art_url || null,
-          createdAt: new Date(item.release_date).toISOString(),
+          audioFile: item.audio_file_url || null,
+          createdAt: new Date(item.created_at || item.release_date).toISOString(),
           platforms: item.platforms || [],
-          // Use what's available in the database or provide default values
-          userId: item.artist_id, // Using artist_id instead of user_id
-          audioFile: null, // Not available in the response
+          userId: item.artist_id,
           genre: "Unknown", // Not available in the response
           releaseDate: item.release_date,
-          upc: undefined, // Not available in the response
-          isrc: undefined, // Not available in the response
+          upc: item.upc,
+          isrc: item.isrc,
         }));
 
         setReleases(formattedReleases);

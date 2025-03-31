@@ -71,6 +71,7 @@ export type Database = {
       releases: {
         Row: {
           artist_id: string
+          audio_file_url: string | null
           cover_art_url: string | null
           id: string
           platforms: string[]
@@ -80,6 +81,7 @@ export type Database = {
         }
         Insert: {
           artist_id: string
+          audio_file_url?: string | null
           cover_art_url?: string | null
           id?: string
           platforms: string[]
@@ -89,6 +91,7 @@ export type Database = {
         }
         Update: {
           artist_id?: string
+          audio_file_url?: string | null
           cover_art_url?: string | null
           id?: string
           platforms?: string[]

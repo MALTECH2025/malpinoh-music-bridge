@@ -9,10 +9,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Release } from "@/types";
-import { Music } from "lucide-react";
-import { useState } from "react";
+import { Music, PlayCircle, StopCircle } from "lucide-react";
+import { useState, useRef } from "react";
 import MusicWave from "../MusicWave";
 import StatusBadge from "../StatusBadge";
+import { toast } from "sonner";
 
 interface ReleaseCardProps {
   release: Release;
@@ -20,8 +21,28 @@ interface ReleaseCardProps {
 
 const ReleaseCard = ({ release }: ReleaseCardProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const togglePlay = () => {
+    if (!release.audioFile) {
+      toast.error("No audio preview available");
+      return;
+    }
+
+    if (!audioRef.current) {
+      audioRef.current = new Audio(release.audioFile);
+      audioRef.current.addEventListener('ended', () => setIsPlaying(false));
+    }
+
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play().catch(err => {
+        console.error("Error playing audio:", err);
+        toast.error("Could not play audio file");
+      });
+    }
+    
     setIsPlaying(!isPlaying);
   };
 
@@ -61,9 +82,19 @@ const ReleaseCard = ({ release }: ReleaseCardProps) => {
           size="sm" 
           className="flex items-center gap-2"
           onClick={togglePlay}
+          disabled={!release.audioFile}
         >
-          <MusicWave isPlaying={isPlaying} />
-          {isPlaying ? "Pause" : "Preview"}
+          {isPlaying ? (
+            <>
+              <StopCircle className="h-4 w-4" />
+              Stop
+            </>
+          ) : (
+            <>
+              <PlayCircle className="h-4 w-4" />
+              {release.audioFile ? "Play" : "No audio"}
+            </>
+          )}
         </Button>
         <Button variant="outline" size="sm">Details</Button>
       </CardFooter>

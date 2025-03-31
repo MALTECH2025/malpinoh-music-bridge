@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -17,6 +18,7 @@ import { z } from "zod";
 import LoadingSpinner from "../LoadingSpinner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_AUDIO_TYPES = ["audio/mpeg", "audio/wav"];
@@ -51,6 +53,7 @@ const ReleaseForm = () => {
   const { toast } = useToast();
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const form = useForm<ReleaseFormValues>({
     resolver: zodResolver(releaseSchema),
@@ -139,6 +142,8 @@ const ReleaseForm = () => {
       
       form.reset();
       setCoverPreview(null);
+      // Redirect to dashboard after successful submission
+      navigate("/dashboard");
     } catch (error: any) {
       console.error("Submission error:", error);
       toast({

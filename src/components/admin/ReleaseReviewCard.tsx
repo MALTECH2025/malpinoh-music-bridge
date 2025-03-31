@@ -20,8 +20,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Release, ReleaseStatus } from "@/types";
-import { Download, Music } from "lucide-react";
-import { useState } from "react";
+import { Download, Music, PlayCircle, StopCircle } from "lucide-react";
+import { useState, useRef } from "react";
 import StatusBadge from "../StatusBadge";
 
 interface ReleaseReviewCardProps {
@@ -33,6 +33,8 @@ const ReleaseReviewCard = ({ release, onStatusChange }: ReleaseReviewCardProps) 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [upc, setUpc] = useState("");
   const [isrc, setIsrc] = useState("");
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const handleApprove = () => {
     if (!upc || !isrc) {
@@ -51,8 +53,39 @@ const ReleaseReviewCard = ({ release, onStatusChange }: ReleaseReviewCardProps) 
   };
 
   const handleDownload = () => {
-    // In a real app, this would trigger a file download
-    toast.info(`Downloading "${release.title}"`);
+    if (release.audioFile) {
+      const link = document.createElement('a');
+      link.href = release.audioFile;
+      link.download = `${release.title}.mp3`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      toast.error("No audio file available for download");
+    }
+  };
+
+  const togglePlay = () => {
+    if (!release.audioFile) {
+      toast.error("No audio preview available");
+      return;
+    }
+
+    if (!audioRef.current) {
+      audioRef.current = new Audio(release.audioFile);
+      audioRef.current.addEventListener('ended', () => setIsPlaying(false));
+    }
+
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play().catch(err => {
+        console.error("Error playing audio:", err);
+        toast.error("Could not play audio file");
+      });
+    }
+    
+    setIsPlaying(!isPlaying);
   };
 
   return (
@@ -86,9 +119,28 @@ const ReleaseReviewCard = ({ release, onStatusChange }: ReleaseReviewCardProps) 
         </div>
       </CardContent>
       <CardFooter className="pt-2 border-t flex items-center justify-between">
-        <Button variant="outline" size="sm" onClick={handleDownload}>
-          <Download className="h-4 w-4 mr-2" /> Download
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={togglePlay}
+          >
+            {isPlaying ? (
+              <><StopCircle className="h-4 w-4 mr-2" /> Stop</>
+            ) : (
+              <><PlayCircle className="h-4 w-4 mr-2" /> Play</>
+            )}
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleDownload}
+            disabled={!release.audioFile}
+          >
+            <Download className="h-4 w-4 mr-2" /> Download
+          </Button>
+        </div>
         <div className="space-x-2">
           {release.status === ReleaseStatus.PENDING && (
             <>

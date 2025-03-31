@@ -1,8 +1,16 @@
 
 import ReleaseForm from "@/components/dashboard/ReleaseForm";
 import MainLayout from "@/components/layout/MainLayout";
+import { useAuth } from "@/contexts/AuthContext";
+import { Navigate } from "react-router-dom";
 
 const Upload = () => {
+  const { user } = useAuth();
+
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
   return (
     <MainLayout requireAuth>
       <div className="space-y-6">

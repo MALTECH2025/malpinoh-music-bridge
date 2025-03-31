@@ -5,12 +5,13 @@ import WithdrawalCard from "@/components/dashboard/WithdrawalCard";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { getDashboardStats, getReleasesForUser, getWithdrawalsForUser } from "@/lib/mock-data";
+import { getDashboardStats, getWithdrawalsForUser } from "@/lib/mock-data";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { DashboardStats as DashboardStatsType } from "@/types";
 import { Release, Withdrawal } from "@/types";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -22,17 +23,50 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Simulating API request delay
-        await new Promise(resolve => setTimeout(resolve, 800));
+        setLoading(true);
         
         if (user) {
+          // Get mock data for stats and withdrawals (these could be replaced with real data later)
           const userStats = getDashboardStats(user.id);
-          const userReleases = getReleasesForUser(user.id);
           const userWithdrawals = getWithdrawalsForUser(user.id);
           
+          // Fetch real releases data from Supabase
+          const { data: releasesData, error: releasesError } = await supabase
+            .from('releases')
+            .select(`
+              *,
+              artists: artist_id (
+                name
+              )
+            `)
+            .eq('artist_id', user.id)
+            .order('release_date', { ascending: false })
+            .limit(3);
+          
+          if (releasesError) {
+            throw releasesError;
+          }
+          
+          if (releasesData) {
+            const formattedReleases = releasesData.map(item => ({
+              id: item.id,
+              title: item.title,
+              artist: item.artists?.name || 'Unknown Artist',
+              status: item.status,
+              coverArt: item.cover_art_url,
+              audioFile: item.audio_file_url,
+              createdAt: new Date(item.release_date).toISOString(),
+              userId: item.artist_id,
+              genre: "Unknown", // This field is not in the database yet
+              releaseDate: item.release_date,
+              platforms: item.platforms || [],
+            }));
+            
+            setReleases(formattedReleases);
+          }
+          
           setStats(userStats);
-          setReleases(userReleases.slice(0, 3)); // Only get first 3 for dashboard
-          setWithdrawals(userWithdrawals.slice(0, 2)); // Only get first 2 for dashboard
+          setWithdrawals(userWithdrawals.slice(0, 2));
         }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
