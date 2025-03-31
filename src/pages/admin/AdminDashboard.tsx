@@ -1,3 +1,4 @@
+
 import AdminStats from "@/components/admin/AdminStats";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import MainLayout from "@/components/layout/MainLayout";
@@ -50,8 +51,7 @@ const AdminDashboard = () => {
           id: item.id,
           title: item.title,
           artist: item.artists?.name || 'Unknown Artist',
-          genre: 'Various', // Assuming genre is not stored in the database
-          status: item.status as ReleaseStatus,
+          status: item.status,
           coverArt: item.cover_art_url || null,
           createdAt: new Date(item.release_date).toISOString(),
           platforms: item.platforms || [],
@@ -75,7 +75,7 @@ const AdminDashboard = () => {
     fetchData();
   }, []);
 
-  const handleStatusChange = async (id: string, newStatus: ReleaseStatus, codes?: { upc?: string; isrc?: string }) => {
+  const handleStatusChange = async (id: string, newStatus: string, codes?: { upc?: string; isrc?: string }) => {
     try {
       const { error } = await supabase
         .from('releases')

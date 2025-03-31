@@ -1,23 +1,24 @@
 
 export enum ReleaseStatus {
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED'
+  PENDING = 'Pending',
+  APPROVED = 'Approved',
+  REJECTED = 'Rejected'
 }
 
 export interface Release {
   id: string;
   title: string;
   artist: string;
-  userId: string;
-  status: ReleaseStatus;
-  coverArt: string;
-  audioFile: string;
-  genre: string;
-  releaseDate: string;
+  userId?: string; // Make optional to handle data from Supabase
+  status: ReleaseStatus | string; // Support string values coming from Supabase
+  coverArt?: string | null; // Make optional and allow null
+  audioFile?: string; // Make optional to handle data from Supabase
+  genre?: string; // Make optional to handle data from Supabase
+  releaseDate?: string; // Make optional to handle data from Supabase
   createdAt: string;
   upc?: string;
   isrc?: string;
+  platforms?: string[]; // Add platforms field from Supabase
 }
 
 export interface Withdrawal {

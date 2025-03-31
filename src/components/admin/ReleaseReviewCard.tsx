@@ -26,7 +26,7 @@ import StatusBadge from "../StatusBadge";
 
 interface ReleaseReviewCardProps {
   release: Release;
-  onStatusChange?: (id: string, newStatus: ReleaseStatus, codes?: { upc?: string; isrc?: string }) => void;
+  onStatusChange?: (id: string, newStatus: string, codes?: { upc?: string; isrc?: string }) => void;
 }
 
 const ReleaseReviewCard = ({ release, onStatusChange }: ReleaseReviewCardProps) => {
