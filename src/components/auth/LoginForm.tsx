@@ -28,7 +28,7 @@ type LoginValues = z.infer<typeof loginSchema>;
 
 const LoginForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
 
   const form = useForm<LoginValues>({
@@ -43,7 +43,9 @@ const LoginForm = () => {
     try {
       setIsSubmitting(true);
       await login(values.email, values.password);
-      navigate("/dashboard");
+      
+      // Check user role and redirect accordingly
+      // The actual redirect will happen in the AuthContext after user data is fetched
     } catch (error) {
       console.error("Login error:", error);
       // Form will stay on the login page for the user to try again

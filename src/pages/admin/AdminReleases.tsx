@@ -2,42 +2,94 @@
 import ReleaseReviewCard from "@/components/admin/ReleaseReviewCard";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import MainLayout from "@/components/layout/MainLayout";
-import { mockReleases } from "@/lib/mock-data";
 import { Release, ReleaseStatus } from "@/types";
 import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const AdminReleases = () => {
   const [loading, setLoading] = useState(true);
   const [releases, setReleases] = useState<Release[]>([]);
 
-  const handleStatusChange = (id: string, newStatus: ReleaseStatus, codes?: { upc?: string; isrc?: string }) => {
-    setReleases(currentReleases => 
-      currentReleases.map(release => 
-        release.id === id 
-          ? { 
-              ...release, 
-              status: newStatus,
-              ...(codes ? { upc: codes.upc, isrc: codes.isrc } : {}),
-            } 
-          : release
-      )
-    );
+  const fetchReleases = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('releases')
+        .select(`
+          id,
+          title,
+          release_date,
+          status,
+          cover_art_url,
+          platforms,
+          artists (
+            name
+          )
+        `)
+        .order('release_date', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        const formattedReleases: Release[] = data.map(item => ({
+          id: item.id,
+          title: item.title,
+          artist: item.artists?.name || 'Unknown Artist',
+          genre: 'Various', // Assuming genre is not stored in the database
+          status: item.status as ReleaseStatus,
+          coverArt: item.cover_art_url || null,
+          createdAt: new Date(item.release_date).toISOString(),
+          platforms: item.platforms || [],
+        }));
+        
+        setReleases(formattedReleases);
+      }
+    } catch (error: any) {
+      console.error("Error fetching releases:", error);
+      toast.error("Failed to fetch releases");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (id: string, newStatus: ReleaseStatus, codes?: { upc?: string; isrc?: string }) => {
+    try {
+      const { error } = await supabase
+        .from('releases')
+        .update({
+          status: newStatus,
+          ...(codes ? { upc: codes.upc, isrc: codes.isrc } : {})
+        })
+        .eq('id', id);
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Update local state
+      setReleases(currentReleases => 
+        currentReleases.map(release => 
+          release.id === id 
+            ? { 
+                ...release, 
+                status: newStatus,
+              } 
+            : release
+        )
+      );
+      
+      toast.success(`Release status updated to ${newStatus}`);
+    } catch (error: any) {
+      console.error("Error updating release status:", error);
+      toast.error("Failed to update release status");
+    }
   };
 
   useEffect(() => {
-    const fetchReleases = async () => {
-      try {
-        // Simulating API request delay
-        await new Promise(resolve => setTimeout(resolve, 800));
-        setReleases(mockReleases);
-      } catch (error) {
-        console.error("Error fetching releases:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchReleases();
   }, []);
 

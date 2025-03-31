@@ -1,39 +1,102 @@
-
 import AdminStats from "@/components/admin/AdminStats";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import MainLayout from "@/components/layout/MainLayout";
-import { getAdminStats, mockReleases, mockWithdrawals } from "@/lib/mock-data";
+import { getAdminStats } from "@/lib/mock-data";
 import { useEffect, useState } from "react";
-import { AdminStats as AdminStatsType, ReleaseStatus } from "@/types";
+import { AdminStats as AdminStatsType, ReleaseStatus, Release, Withdrawal } from "@/types";
 import ReleaseReviewCard from "@/components/admin/ReleaseReviewCard";
 import WithdrawalReviewCard from "@/components/admin/WithdrawalReviewCard";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<AdminStatsType | null>(null);
+  const [pendingReleases, setPendingReleases] = useState<Release[]>([]);
+  const [pendingWithdrawals, setPendingWithdrawals] = useState<Withdrawal[]>([]);
   
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Simulating API request delay
-        await new Promise(resolve => setTimeout(resolve, 800));
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      
+      // Get admin stats (still using mock for now)
+      const adminStats = getAdminStats();
+      setStats(adminStats);
+      
+      // Fetch real pending releases from Supabase
+      const { data: releasesData, error: releasesError } = await supabase
+        .from('releases')
+        .select(`
+          id,
+          title,
+          release_date,
+          status,
+          cover_art_url,
+          platforms,
+          artists (
+            name
+          )
+        `)
+        .eq('status', 'Pending')
+        .limit(4) // Only get a few for the dashboard
+        .order('release_date', { ascending: false });
         
-        const adminStats = getAdminStats();
-        setStats(adminStats);
-      } catch (error) {
-        console.error("Error fetching admin data:", error);
-      } finally {
-        setLoading(false);
+      if (releasesError) throw releasesError;
+      
+      if (releasesData) {
+        const formattedReleases: Release[] = releasesData.map(item => ({
+          id: item.id,
+          title: item.title,
+          artist: item.artists?.name || 'Unknown Artist',
+          genre: 'Various', // Assuming genre is not stored in the database
+          status: item.status as ReleaseStatus,
+          coverArt: item.cover_art_url || null,
+          createdAt: new Date(item.release_date).toISOString(),
+          platforms: item.platforms || [],
+        }));
+        
+        setPendingReleases(formattedReleases);
       }
-    };
+      
+      // For now, we'll keep using mock data for withdrawals since it's not implemented yet
+      setPendingWithdrawals([]);
+      
+    } catch (error) {
+      console.error("Error fetching admin data:", error);
+      toast.error("Failed to load dashboard data");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchData();
   }, []);
 
-  const pendingReleases = mockReleases.filter(r => r.status === ReleaseStatus.PENDING);
-  const pendingWithdrawals = mockWithdrawals.filter(w => w.status === 'PENDING');
+  const handleStatusChange = async (id: string, newStatus: ReleaseStatus, codes?: { upc?: string; isrc?: string }) => {
+    try {
+      const { error } = await supabase
+        .from('releases')
+        .update({
+          status: newStatus,
+          ...(codes ? { upc: codes.upc, isrc: codes.isrc } : {})
+        })
+        .eq('id', id);
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Remove the release from the pending list
+      setPendingReleases(current => current.filter(release => release.id !== id));
+      toast.success(`Release status updated to ${newStatus}`);
+    } catch (error: any) {
+      console.error("Error updating release status:", error);
+      toast.error("Failed to update release status");
+    }
+  };
 
   if (loading) {
     return (
@@ -69,6 +132,7 @@ const AdminDashboard = () => {
                   <ReleaseReviewCard
                     key={release.id}
                     release={release}
+                    onStatusChange={handleStatusChange}
                   />
                 ))}
               </div>

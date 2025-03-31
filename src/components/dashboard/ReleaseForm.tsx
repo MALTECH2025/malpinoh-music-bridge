@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -16,6 +15,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import LoadingSpinner from "../LoadingSpinner";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_AUDIO_TYPES = ["audio/mpeg", "audio/wav"];
@@ -49,25 +50,66 @@ const ReleaseForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const form = useForm<ReleaseFormValues>({
     resolver: zodResolver(releaseSchema),
     defaultValues: {
       title: "",
-      artist: "",
+      artist: user?.name || "",
       genre: "",
       releaseDate: new Date().toISOString().split("T")[0],
     },
   });
 
   const onSubmit = async (values: ReleaseFormValues) => {
+    if (!user) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to submit releases",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       
-      // Simulate API request
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      let coverArtUrl = null;
       
-      console.log("Form values:", values);
+      if (values.coverArt) {
+        const fileExt = values.coverArt.name.split('.').pop();
+        const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError, data } = await supabase.storage
+          .from('releases')
+          .upload(filePath, values.coverArt);
+          
+        if (uploadError) {
+          throw new Error(`Error uploading cover art: ${uploadError.message}`);
+        }
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('releases')
+          .getPublicUrl(filePath);
+          
+        coverArtUrl = publicUrl;
+      }
+      
+      const { error } = await supabase
+        .from('releases')
+        .insert({
+          title: values.title,
+          artist_id: user.id,
+          release_date: values.releaseDate,
+          platforms: ["Spotify", "Apple Music", "Amazon Music"],
+          status: "Pending",
+          cover_art_url: coverArtUrl,
+        });
+        
+      if (error) {
+        throw error;
+      }
       
       toast({
         title: "Submission Received",
@@ -76,11 +118,11 @@ const ReleaseForm = () => {
       
       form.reset();
       setCoverPreview(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Submission error:", error);
       toast({
         title: "Submission Failed",
-        description: "There was a problem submitting your release.",
+        description: error.message || "There was a problem submitting your release.",
         variant: "destructive",
       });
     } finally {
