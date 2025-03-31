@@ -3,7 +3,6 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { Session } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
 
 export interface User {
   id: string;
@@ -43,7 +42,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   // Set up auth state listener and check for existing session
   useEffect(() => {
@@ -79,19 +77,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
-
-  // Effect to handle role-based navigation when user data changes
-  useEffect(() => {
-    if (user && !loading) {
-      // Navigate based on user role
-      if (user.isAdmin) {
-        navigate("/admin");
-      } else {
-        navigate("/dashboard");
-      }
-    }
-  }, [user, loading, navigate]);
+  }, []);
 
   // Fetch user data from the artists table
   const fetchUserData = async (userId: string) => {
@@ -146,7 +132,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       if (error) throw error;
       
       toast.success(`Welcome back!`);
-      // Navigation will happen in the useEffect when user data is set
+      // Navigation will happen in components using the auth context
     } catch (error: any) {
       toast.error(error.message || 'Login failed');
       throw error;

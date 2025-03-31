@@ -1,7 +1,7 @@
 
 import { ReactNode, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import LoadingSpinner from "../LoadingSpinner";
@@ -19,6 +19,23 @@ const MainLayout = ({
 }: MainLayoutProps) => {
   const { user, loading } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Handle role-based navigation when user data changes
+  useEffect(() => {
+    if (user && !loading) {
+      // Auto redirect to appropriate dashboard based on role
+      // Only apply this when we're at login or register pages
+      const authPages = ['/login', '/register', '/forgot-password'];
+      if (authPages.includes(location.pathname)) {
+        if (user.isAdmin) {
+          navigate('/admin');
+        } else {
+          navigate('/dashboard');
+        }
+      }
+    }
+  }, [user, loading, location.pathname, navigate]);
 
   // Scroll to top on route change
   useEffect(() => {
