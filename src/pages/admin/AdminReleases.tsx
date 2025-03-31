@@ -22,7 +22,7 @@ const AdminReleases = () => {
         .from('releases')
         .select(`
           *,
-          artists: user_id (
+          artists: artist_id (
             name
           )
         `)
@@ -41,17 +41,17 @@ const AdminReleases = () => {
           id: item.id,
           title: item.title,
           artist: item.artists?.name || 'Unknown Artist',
-          status: item.status,
+          status: item.status as ReleaseStatus,
           coverArt: item.cover_art_url || null,
           createdAt: new Date(item.release_date).toISOString(),
           platforms: item.platforms || [],
-          // Include these optional fields to satisfy TypeScript
-          userId: item.user_id,
-          audioFile: item.audio_file_url,
-          genre: item.genre || undefined,
+          // Use what's available in the database or provide default values
+          userId: item.artist_id, // Using artist_id instead of user_id
+          audioFile: null, // Not available in the response
+          genre: "Unknown", // Not available in the response
           releaseDate: item.release_date,
-          upc: item.upc,
-          isrc: item.isrc,
+          upc: undefined, // Not available in the response
+          isrc: undefined, // Not available in the response
         }));
 
         setReleases(formattedReleases);

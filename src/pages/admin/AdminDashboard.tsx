@@ -1,18 +1,20 @@
 
+import { useState, useEffect } from "react";
 import AdminStats from "@/components/admin/AdminStats";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import MainLayout from "@/components/layout/MainLayout";
 import ReleaseReviewCard from "@/components/admin/ReleaseReviewCard";
 import { ReleaseStatus } from "@/types";
 import { Release } from "@/types";
-import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { getAdminStats } from "@/lib/mock-data";
 
 const AdminDashboard = () => {
   const [pendingReleases, setPendingReleases] = useState<Release[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const [adminStats, setAdminStats] = useState(getAdminStats());
 
   const fetchPendingReleases = async () => {
     try {
@@ -21,7 +23,7 @@ const AdminDashboard = () => {
         .from('releases')
         .select(`
           *,
-          artists: user_id (
+          artists: artist_id (
             name
           )
         `)
@@ -38,17 +40,17 @@ const AdminDashboard = () => {
           id: item.id,
           title: item.title,
           artist: item.artists?.name || 'Unknown Artist',
-          status: item.status,
+          status: item.status as ReleaseStatus,
           coverArt: item.cover_art_url || null,
           createdAt: new Date(item.release_date).toISOString(),
           platforms: item.platforms || [],
-          // Include these optional fields to satisfy TypeScript
-          userId: item.user_id,
-          audioFile: item.audio_file_url,
-          genre: item.genre || undefined,
+          // Use what's available in the database or provide default values
+          userId: item.artist_id, // Using artist_id instead of user_id
+          audioFile: null, // Not available in the response
+          genre: "Unknown", // Not available in the response
           releaseDate: item.release_date,
-          upc: item.upc,
-          isrc: item.isrc,
+          upc: undefined, // Not available in the response
+          isrc: undefined, // Not available in the response
         }));
 
         setPendingReleases(formattedReleases);
@@ -104,7 +106,7 @@ const AdminDashboard = () => {
   return (
     <MainLayout requireAuth adminOnly>
       <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
-      <AdminStats />
+      <AdminStats stats={adminStats} />
 
       <div className="mt-10">
         <h2 className="text-xl font-semibold mb-4">Pending Releases</h2>
