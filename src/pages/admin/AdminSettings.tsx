@@ -167,56 +167,58 @@ const AdminSettings = () => {
           </TabsContent>
           
           <TabsContent value="payments">
-            <Card>
-              <CardHeader>
-                <CardTitle>Payment Settings</CardTitle>
-                <CardDescription>
-                  Configure payment and withdrawal settings
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="minWithdrawalAmount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Minimum Withdrawal Amount ($)</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="number" min={1} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="releaseApprovalAutomatic"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">
-                          Automatic Release Approval
-                        </FormLabel>
-                        <FormDescription>
-                          Automatically approve all releases (not recommended)
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                
-                <Button onClick={() => form.handleSubmit(onSubmit)()} disabled={isSubmitting}>
-                  {isSubmitting ? <><LoadingSpinner size={16} className="mr-2" /> Saving...</> : "Save payment settings"}
-                </Button>
-              </CardContent>
-            </Card>
+            <Form {...form}>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Payment Settings</CardTitle>
+                  <CardDescription>
+                    Configure payment and withdrawal settings
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="minWithdrawalAmount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Minimum Withdrawal Amount ($)</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="number" min={1} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="releaseApprovalAutomatic"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">
+                            Automatic Release Approval
+                          </FormLabel>
+                          <FormDescription>
+                            Automatically approve all releases (not recommended)
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <Button onClick={form.handleSubmit(onSubmit)} disabled={isSubmitting}>
+                    {isSubmitting ? <><LoadingSpinner size={16} className="mr-2" /> Saving...</> : "Save payment settings"}
+                  </Button>
+                </CardContent>
+              </Card>
+            </Form>
           </TabsContent>
         </Tabs>
       </div>
