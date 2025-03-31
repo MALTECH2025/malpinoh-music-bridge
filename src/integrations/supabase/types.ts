@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       artists: {
         Row: {
+          created_at: string | null
           email: string
           id: string
           name: string
@@ -18,6 +19,7 @@ export type Database = {
           wallet_balance: number | null
         }
         Insert: {
+          created_at?: string | null
           email: string
           id: string
           name: string
@@ -25,6 +27,7 @@ export type Database = {
           wallet_balance?: number | null
         }
         Update: {
+          created_at?: string | null
           email?: string
           id?: string
           name?: string

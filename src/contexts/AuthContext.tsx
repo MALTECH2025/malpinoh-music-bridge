@@ -1,6 +1,8 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { Session } from '@supabase/supabase-js';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface User {
   id: string;
@@ -16,31 +18,11 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, name: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   requestPasswordReset: (email: string) => Promise<void>;
   resetPassword: (token: string, password: string) => Promise<void>;
   verifyEmail: (token: string) => Promise<void>;
 }
-
-// Mock users for demonstration purposes
-const MOCK_USERS: User[] = [
-  {
-    id: '1',
-    email: 'admin@malpinoh.com',
-    name: 'Admin User',
-    isAdmin: true,
-    emailVerified: true,
-    balance: 0
-  },
-  {
-    id: '2',
-    email: 'artist@example.com',
-    name: 'Demo Artist',
-    isAdmin: false,
-    emailVerified: true,
-    balance: 120.50
-  }
-];
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -58,39 +40,98 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Set up auth state listener and check for existing session
   useEffect(() => {
-    // Check if user is logged in from localStorage
-    const storedUser = localStorage.getItem('malpinohUser');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Error parsing stored user', error);
-        localStorage.removeItem('malpinohUser');
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, currentSession) => {
+        console.log('Auth state changed:', event);
+        setSession(currentSession);
+        
+        // Fetch user data if we have a session
+        if (currentSession?.user) {
+          // Use setTimeout to avoid deadlocks with Supabase client
+          setTimeout(() => {
+            fetchUserData(currentSession.user.id);
+          }, 0);
+        } else {
+          setUser(null);
+        }
       }
-    }
-    setLoading(false);
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession);
+      
+      if (currentSession?.user) {
+        fetchUserData(currentSession.user.id);
+      } else {
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const login = async (email: string, password: string) => {
-    setLoading(true);
+  // Fetch user data from the artists table
+  const fetchUserData = async (userId: string) => {
     try {
-      // Simulate API request delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      setLoading(true);
       
-      // Mock login validation
-      const foundUser = MOCK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
-      if (!foundUser) {
-        throw new Error('Invalid email or password');
-      }
+      // Get the user data from the artists table
+      const { data: artistData, error: artistError } = await supabase
+        .from('artists')
+        .select('*')
+        .eq('id', userId)
+        .single();
+        
+      if (artistError) throw artistError;
       
-      // In a real app, you'd validate the password here
+      // Check if user has admin role
+      const { data: roleData, error: roleError } = await supabase
+        .rpc('has_role', { user_id: userId, role: 'admin' });
+        
+      if (roleError) throw roleError;
       
-      setUser(foundUser);
-      localStorage.setItem('malpinohUser', JSON.stringify(foundUser));
-      toast.success(`Welcome back, ${foundUser.name}!`);
+      // Create user object with data from both sources
+      const userData: User = {
+        id: userId,
+        email: artistData.email,
+        name: artistData.name,
+        isAdmin: roleData || false,
+        emailVerified: true, // Supabase handles email verification
+        balance: artistData.wallet_balance || 0
+      };
+      
+      setUser(userData);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      // If there was an error, sign out the user
+      await supabase.auth.signOut();
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const login = async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) throw error;
+      
+      toast.success(`Welcome back!`);
     } catch (error: any) {
       toast.error(error.message || 'Login failed');
       throw error;
@@ -100,31 +141,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const register = async (email: string, name: string, password: string) => {
-    setLoading(true);
     try {
-      // Simulate API request delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      setLoading(true);
       
-      // Check if user already exists
-      if (MOCK_USERS.some(u => u.email.toLowerCase() === email.toLowerCase())) {
-        throw new Error('Email already in use');
-      }
-      
-      // In a real app, you'd create a user in your database here
-      const newUser: User = {
-        id: String(MOCK_USERS.length + 1),
+      const { data, error } = await supabase.auth.signUp({
         email,
-        name,
-        isAdmin: false,
-        emailVerified: false,
-        balance: 0
-      };
+        password,
+        options: {
+          data: {
+            name,
+          },
+        },
+      });
       
-      // For demo purposes, we'll just set the user as logged in
-      setUser(newUser);
-      localStorage.setItem('malpinohUser', JSON.stringify(newUser));
+      if (error) throw error;
+      
       toast.success('Welcome to MalpinohDistro!', {
-        description: 'Check your email for a verification link.'
+        description: data.session ? 'Account created successfully!' : 'Check your email for a verification link.'
       });
     } catch (error: any) {
       toast.error(error.message || 'Registration failed');
@@ -134,27 +167,26 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('malpinohUser');
-    toast.info('You have been logged out');
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.info('You have been logged out');
+    } catch (error: any) {
+      toast.error(error.message || 'Logout failed');
+    }
   };
 
   const requestPasswordReset = async (email: string) => {
     setLoading(true);
     try {
-      // Simulate API request delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
       
-      const foundUser = MOCK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
-      if (!foundUser) {
-        // Don't reveal if the email exists or not for security reasons
-        toast.success('If your email is registered, you will receive password reset instructions.');
-        return;
-      }
+      if (error) throw error;
       
-      // In a real app, you'd send a password reset email here
-      toast.success('Password reset instructions sent to your email');
+      // Don't reveal if the email exists or not for security reasons
+      toast.success('If your email is registered, you will receive password reset instructions.');
     } catch (error: any) {
       toast.error('Failed to process request');
       throw error;
@@ -166,10 +198,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const resetPassword = async (token: string, password: string) => {
     setLoading(true);
     try {
-      // Simulate API request delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // In Supabase, the token is handled via URL parameters automatically
+      // We just need to set the new password
+      const { error } = await supabase.auth.updateUser({
+        password: password
+      });
       
-      // In a real app, you'd validate the token and update the user's password
+      if (error) throw error;
+      
       toast.success('Password reset successfully');
     } catch (error: any) {
       toast.error(error.message || 'Password reset failed');
@@ -180,18 +216,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const verifyEmail = async (token: string) => {
+    // Supabase handles email verification automatically via URL parameters
+    // This function is kept for API consistency
     setLoading(true);
     try {
-      // Simulate API request delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // In a real app, you'd validate the token and mark the user's email as verified
-      if (user) {
-        const updatedUser = { ...user, emailVerified: true };
-        setUser(updatedUser);
-        localStorage.setItem('malpinohUser', JSON.stringify(updatedUser));
-        toast.success('Email verified successfully');
-      }
+      toast.success('Email verified successfully');
     } catch (error: any) {
       toast.error(error.message || 'Email verification failed');
       throw error;

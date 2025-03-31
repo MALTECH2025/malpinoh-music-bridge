@@ -46,7 +46,7 @@ const LoginForm = () => {
       navigate("/dashboard");
     } catch (error) {
       console.error("Login error:", error);
-    } finally {
+      // Form will stay on the login page for the user to try again
       setIsSubmitting(false);
     }
   };

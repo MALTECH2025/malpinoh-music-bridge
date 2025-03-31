@@ -41,6 +41,8 @@ const ForgotPasswordForm = () => {
       setIsSubmitted(true);
     } catch (error) {
       console.error("Password reset request error:", error);
+      // We still show the success message for security
+      setIsSubmitted(true);
     } finally {
       setIsSubmitting(false);
     }

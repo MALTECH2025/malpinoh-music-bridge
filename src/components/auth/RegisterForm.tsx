@@ -57,7 +57,6 @@ const RegisterForm = () => {
       navigate("/dashboard");
     } catch (error) {
       console.error("Registration error:", error);
-    } finally {
       setIsSubmitting(false);
     }
   };
