@@ -19,6 +19,8 @@ export interface Release {
   upc?: string;
   isrc?: string;
   platforms?: string[]; // Add platforms field from Supabase
+  rejectionReason?: string; // Add rejection reason field
+  additionalAudioFiles?: any; // Add additional audio files support
 }
 
 export interface Withdrawal {

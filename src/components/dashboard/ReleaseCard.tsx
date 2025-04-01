@@ -1,103 +1,84 @@
 
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import StatusBadge from "@/components/StatusBadge";
 import { Release } from "@/types";
-import { Music, PlayCircle, StopCircle } from "lucide-react";
-import { useState, useRef } from "react";
-import MusicWave from "../MusicWave";
-import StatusBadge from "../StatusBadge";
-import { toast } from "sonner";
+import { Music } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
 interface ReleaseCardProps {
   release: Release;
 }
 
 const ReleaseCard = ({ release }: ReleaseCardProps) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  const togglePlay = () => {
-    if (!release.audioFile) {
-      toast.error("No audio preview available");
-      return;
-    }
-
-    if (!audioRef.current) {
-      audioRef.current = new Audio(release.audioFile);
-      audioRef.current.addEventListener('ended', () => setIsPlaying(false));
-    }
-
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play().catch(err => {
-        console.error("Error playing audio:", err);
-        toast.error("Could not play audio file");
-      });
-    }
-    
-    setIsPlaying(!isPlaying);
-  };
+  const releaseDate = new Date(release.createdAt);
+  const formattedDate = formatDistanceToNow(releaseDate, { addSuffix: true });
+  
+  const displayedPlatforms = release.platforms?.slice(0, 3) || [];
+  const remainingPlatforms = (release.platforms?.length || 0) - displayedPlatforms.length;
 
   return (
-    <Card className="overflow-hidden">
-      <div 
-        className="h-32 bg-gradient-to-r from-brand-purple to-brand-blue flex items-center justify-center"
-      >
-        {release.coverArt ? (
-          <img 
-            src={release.coverArt} 
-            alt={release.title} 
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <Music size={48} className="text-white" />
-        )}
-      </div>
-      <CardHeader className="p-4">
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="text-lg">{release.title}</CardTitle>
-            <CardDescription>{release.artist}</CardDescription>
+    <Card className="h-full flex flex-col">
+      <CardHeader className="p-0">
+        <div className="relative h-48 w-full bg-muted overflow-hidden">
+          {release.coverArt ? (
+            <img 
+              src={release.coverArt} 
+              alt={release.title} 
+              className="w-full h-full object-cover transition-transform hover:scale-105"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Music className="h-16 w-16 text-muted-foreground opacity-25" />
+            </div>
+          )}
+          <div className="absolute top-2 right-2">
+            <StatusBadge status={release.status} />
           </div>
-          <StatusBadge status={release.status} />
         </div>
       </CardHeader>
-      <CardContent className="p-4 pt-0">
-        <p className="text-sm">Genre: {release.genre}</p>
-        <p className="text-sm">Release Date: {release.releaseDate}</p>
-        {release.upc && <p className="text-sm">UPC: {release.upc}</p>}
-        {release.isrc && <p className="text-sm">ISRC: {release.isrc}</p>}
-      </CardContent>
-      <CardFooter className="p-4 border-t flex justify-between">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="flex items-center gap-2"
-          onClick={togglePlay}
-          disabled={!release.audioFile}
-        >
-          {isPlaying ? (
-            <>
-              <StopCircle className="h-4 w-4" />
-              Stop
-            </>
-          ) : (
-            <>
-              <PlayCircle className="h-4 w-4" />
-              {release.audioFile ? "Play" : "No audio"}
-            </>
+      <CardContent className="flex-grow flex flex-col p-4">
+        <div className="mb-auto">
+          <h3 className="font-semibold text-lg truncate">{release.title}</h3>
+          <p className="text-muted-foreground text-sm mb-2">Uploaded {formattedDate}</p>
+          
+          {/* Show UPC and ISRC when approved */}
+          {release.upc && (
+            <p className="text-xs text-muted-foreground mt-1">UPC: {release.upc}</p>
           )}
-        </Button>
-        <Button variant="outline" size="sm">Details</Button>
-      </CardFooter>
+          {release.isrc && (
+            <p className="text-xs text-muted-foreground mt-1">ISRC: {release.isrc}</p>
+          )}
+          
+          {/* Show rejection reason when rejected */}
+          {release.rejectionReason && release.status === 'Rejected' && (
+            <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-xs font-semibold text-red-700">Rejection reason:</p>
+              <p className="text-xs text-red-600">{release.rejectionReason}</p>
+            </div>
+          )}
+        </div>
+        
+        {displayedPlatforms.length > 0 && (
+          <div className="mt-4">
+            <p className="text-xs text-muted-foreground mb-1">Platforms:</p>
+            <div className="flex flex-wrap gap-1">
+              {displayedPlatforms.map((platform, index) => (
+                <span 
+                  key={index} 
+                  className="px-2 py-1 bg-muted text-xs rounded-full"
+                >
+                  {platform}
+                </span>
+              ))}
+              {remainingPlatforms > 0 && (
+                <span className="px-2 py-1 bg-muted text-xs rounded-full">
+                  +{remainingPlatforms} more
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </CardContent>
     </Card>
   );
 };

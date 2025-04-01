@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Release, ReleaseStatus } from "@/types";
 import { Download, Music, PlayCircle, StopCircle, Image } from "lucide-react";
 import { useState, useRef } from "react";
@@ -26,15 +27,28 @@ import StatusBadge from "../StatusBadge";
 
 interface ReleaseReviewCardProps {
   release: Release;
-  onStatusChange?: (id: string, newStatus: string, codes?: { upc?: string; isrc?: string }) => void;
+  onStatusChange?: (id: string, newStatus: string, metadata?: { upc?: string; isrc?: string; rejectionReason?: string }) => void;
 }
 
 const ReleaseReviewCard = ({ release, onStatusChange }: ReleaseReviewCardProps) => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
+  const [isRejectionDialogOpen, setIsRejectionDialogOpen] = useState(false);
   const [upc, setUpc] = useState("");
   const [isrc, setIsrc] = useState("");
+  const [rejectionReason, setRejectionReason] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
+  const [currentAudioIndex, setCurrentAudioIndex] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const additionalAudioFiles = release.additionalAudioFiles 
+    ? (typeof release.additionalAudioFiles === 'string' 
+        ? JSON.parse(release.additionalAudioFiles) 
+        : release.additionalAudioFiles) 
+    : [];
+  
+  const allAudioFiles = release.audioFile 
+    ? [{ url: release.audioFile, name: `${release.title}.mp3` }, ...additionalAudioFiles]
+    : [...additionalAudioFiles];
 
   const handleApprove = () => {
     if (!upc || !isrc) {
@@ -43,20 +57,29 @@ const ReleaseReviewCard = ({ release, onStatusChange }: ReleaseReviewCardProps) 
     }
 
     onStatusChange?.(release.id, ReleaseStatus.APPROVED, { upc, isrc });
-    setIsDialogOpen(false);
+    setIsApprovalDialogOpen(false);
     toast.success(`"${release.title}" has been approved`);
   };
 
   const handleReject = () => {
-    onStatusChange?.(release.id, ReleaseStatus.REJECTED);
+    if (!rejectionReason.trim()) {
+      toast.error("Please provide a reason for rejection");
+      return;
+    }
+
+    onStatusChange?.(release.id, ReleaseStatus.REJECTED, { rejectionReason });
+    setIsRejectionDialogOpen(false);
     toast.info(`"${release.title}" has been rejected`);
   };
 
-  const handleDownloadAudio = () => {
-    if (release.audioFile) {
+  const handleDownloadAudio = (audioUrl?: string, fileName?: string) => {
+    const url = audioUrl || release.audioFile;
+    const name = fileName || `${release.title}.mp3`;
+    
+    if (url) {
       const link = document.createElement('a');
-      link.href = release.audioFile;
-      link.download = `${release.title}.mp3`;
+      link.href = url;
+      link.download = name;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -78,27 +101,31 @@ const ReleaseReviewCard = ({ release, onStatusChange }: ReleaseReviewCardProps) 
     }
   };
 
-  const togglePlay = () => {
-    if (!release.audioFile) {
+  const togglePlay = (audioIndex: number = 0) => {
+    const audioFile = allAudioFiles[audioIndex]?.url;
+    
+    if (!audioFile) {
       toast.error("No audio preview available");
       return;
     }
 
-    if (!audioRef.current) {
-      audioRef.current = new Audio(release.audioFile);
-      audioRef.current.addEventListener('ended', () => setIsPlaying(false));
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.removeEventListener('ended', () => setIsPlaying(false));
     }
 
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
+    if (currentAudioIndex !== audioIndex || !isPlaying) {
+      audioRef.current = new Audio(audioFile);
+      audioRef.current.addEventListener('ended', () => setIsPlaying(false));
       audioRef.current.play().catch(err => {
         console.error("Error playing audio:", err);
         toast.error("Could not play audio file");
       });
+      setCurrentAudioIndex(audioIndex);
+      setIsPlaying(true);
+    } else {
+      setIsPlaying(false);
     }
-    
-    setIsPlaying(!isPlaying);
   };
 
   return (
@@ -110,9 +137,9 @@ const ReleaseReviewCard = ({ release, onStatusChange }: ReleaseReviewCardProps) 
         </div>
       </CardHeader>
       <CardContent className="pb-3">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-start space-x-4">
           <div 
-            className="h-16 w-16 rounded-md bg-muted flex items-center justify-center overflow-hidden"
+            className="h-16 w-16 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0"
           >
             {release.coverArt ? (
               <img 
@@ -126,19 +153,62 @@ const ReleaseReviewCard = ({ release, onStatusChange }: ReleaseReviewCardProps) 
           </div>
           <div className="space-y-1">
             <p className="text-sm">Artist: {release.artist}</p>
-            <p className="text-sm">Genre: {release.genre}</p>
+            <p className="text-sm">Genre: {release.genre || "Unknown"}</p>
             <p className="text-sm text-muted-foreground">Submitted: {new Date(release.createdAt).toLocaleDateString()}</p>
+            {release.status === ReleaseStatus.REJECTED && release.rejectionReason && (
+              <p className="text-sm text-red-600 mt-2">
+                <span className="font-semibold">Rejection reason:</span> {release.rejectionReason}
+              </p>
+            )}
           </div>
         </div>
+
+        {/* Display additional audio files if available */}
+        {allAudioFiles.length > 0 && (
+          <div className="mt-4">
+            <p className="text-sm font-medium mb-2">Audio Files:</p>
+            <div className="space-y-2">
+              {allAudioFiles.map((audio, index) => (
+                <div key={index} className="flex items-center justify-between px-3 py-2 bg-muted/30 rounded-md">
+                  <span className="text-sm truncate max-w-[60%]">
+                    {audio.name || `Track ${index + 1}`}
+                  </span>
+                  <div className="flex items-center space-x-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => togglePlay(index)}
+                    >
+                      {isPlaying && currentAudioIndex === index ? (
+                        <StopCircle className="h-4 w-4" />
+                      ) : (
+                        <PlayCircle className="h-4 w-4" />
+                      )}
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => handleDownloadAudio(audio.url, audio.name)}
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </CardContent>
       <CardFooter className="pt-2 border-t flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={togglePlay}
+            onClick={() => togglePlay(0)}
           >
-            {isPlaying ? (
+            {isPlaying && currentAudioIndex === 0 ? (
               <><StopCircle className="h-4 w-4 mr-2" /> Stop</>
             ) : (
               <><PlayCircle className="h-4 w-4 mr-2" /> Play</>
@@ -148,8 +218,8 @@ const ReleaseReviewCard = ({ release, onStatusChange }: ReleaseReviewCardProps) 
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={handleDownloadAudio}
-            disabled={!release.audioFile}
+            onClick={() => handleDownloadAudio()}
+            disabled={!release.audioFile && allAudioFiles.length === 0}
           >
             <Download className="h-4 w-4 mr-2" /> Audio
           </Button>
@@ -166,14 +236,39 @@ const ReleaseReviewCard = ({ release, onStatusChange }: ReleaseReviewCardProps) 
         <div className="space-x-2">
           {release.status === ReleaseStatus.PENDING && (
             <>
-              <Button 
-                variant="destructive" 
-                size="sm" 
-                onClick={handleReject}
-              >
-                Reject
-              </Button>
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <Dialog open={isRejectionDialogOpen} onOpenChange={setIsRejectionDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="destructive" size="sm">
+                    Reject
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Reject Release</DialogTitle>
+                    <DialogDescription>
+                      Provide a reason for rejecting "{release.title}" by {release.artist}.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="rejectionReason">Rejection Reason</Label>
+                      <Textarea
+                        id="rejectionReason"
+                        value={rejectionReason}
+                        onChange={(e) => setRejectionReason(e.target.value)}
+                        placeholder="Explain why this release is being rejected..."
+                        rows={4}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsRejectionDialogOpen(false)}>Cancel</Button>
+                    <Button variant="destructive" onClick={handleReject}>Reject Release</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+              
+              <Dialog open={isApprovalDialogOpen} onOpenChange={setIsApprovalDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm">Approve</Button>
                 </DialogTrigger>
@@ -207,7 +302,7 @@ const ReleaseReviewCard = ({ release, onStatusChange }: ReleaseReviewCardProps) 
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+                    <Button variant="outline" onClick={() => setIsApprovalDialogOpen(false)}>Cancel</Button>
                     <Button onClick={handleApprove}>Confirm Approval</Button>
                   </DialogFooter>
                 </DialogContent>

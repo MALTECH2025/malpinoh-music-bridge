@@ -16,6 +16,7 @@ import Earnings from "./pages/dashboard/Earnings";
 import Settings from "./pages/dashboard/Settings";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminReleases from "./pages/admin/AdminReleases";
+import ManageArtists from "./pages/admin/ManageArtists";
 import AdminWithdrawals from "./pages/admin/AdminWithdrawals";
 import AdminSettings from "./pages/admin/AdminSettings";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -45,6 +46,7 @@ const App = () => (
 
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/artists" element={<ManageArtists />} />
             <Route path="/admin/releases" element={<AdminReleases />} />
             <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
             <Route path="/admin/settings" element={<AdminSettings />} />

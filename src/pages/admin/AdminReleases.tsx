@@ -53,6 +53,8 @@ const AdminReleases = () => {
           releaseDate: item.release_date,
           upc: item.upc || null,
           isrc: item.isrc || null,
+          rejectionReason: item.rejection_reason || null,
+          additionalAudioFiles: item.additional_audio_files || null,
         }));
 
         setReleases(formattedReleases);
@@ -73,12 +75,13 @@ const AdminReleases = () => {
     fetchReleases(activeTab);
   }, [activeTab]);
 
-  const handleStatusChange = async (id: string, newStatus: string, codes?: { upc?: string; isrc?: string }) => {
+  const handleStatusChange = async (id: string, newStatus: string, metadata?: { upc?: string; isrc?: string; rejectionReason?: string }) => {
     try {
       const updateData: Record<string, any> = { status: newStatus };
       
-      if (codes?.upc) updateData.upc = codes.upc;
-      if (codes?.isrc) updateData.isrc = codes.isrc;
+      if (metadata?.upc) updateData.upc = metadata.upc;
+      if (metadata?.isrc) updateData.isrc = metadata.isrc;
+      if (metadata?.rejectionReason) updateData.rejection_reason = metadata.rejectionReason;
       
       const { error } = await supabase
         .from('releases')

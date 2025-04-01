@@ -2,7 +2,7 @@
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link, useLocation } from "react-router-dom";
-import { Calendar, DollarSign, Music, Settings, Upload } from "lucide-react";
+import { Calendar, DollarSign, Music, Settings, Upload, Users } from "lucide-react";
 
 interface SidebarItemProps {
   href: string;
@@ -66,6 +66,11 @@ const Sidebar = () => {
       href: "/admin",
       icon: <Music className="h-4 w-4" />,
       title: "Admin Dashboard",
+    },
+    {
+      href: "/admin/artists",
+      icon: <Users className="h-4 w-4" />,
+      title: "Manage Artists",
     },
     {
       href: "/admin/releases",
