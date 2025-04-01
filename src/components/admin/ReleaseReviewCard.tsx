@@ -20,7 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Release, ReleaseStatus } from "@/types";
-import { Download, Music, PlayCircle, StopCircle } from "lucide-react";
+import { Download, Music, PlayCircle, StopCircle, Image } from "lucide-react";
 import { useState, useRef } from "react";
 import StatusBadge from "../StatusBadge";
 
@@ -52,7 +52,7 @@ const ReleaseReviewCard = ({ release, onStatusChange }: ReleaseReviewCardProps) 
     toast.info(`"${release.title}" has been rejected`);
   };
 
-  const handleDownload = () => {
+  const handleDownloadAudio = () => {
     if (release.audioFile) {
       const link = document.createElement('a');
       link.href = release.audioFile;
@@ -62,6 +62,19 @@ const ReleaseReviewCard = ({ release, onStatusChange }: ReleaseReviewCardProps) 
       document.body.removeChild(link);
     } else {
       toast.error("No audio file available for download");
+    }
+  };
+
+  const handleDownloadCover = () => {
+    if (release.coverArt) {
+      const link = document.createElement('a');
+      link.href = release.coverArt;
+      link.download = `${release.title}_cover.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      toast.error("No cover art available for download");
     }
   };
 
@@ -135,10 +148,19 @@ const ReleaseReviewCard = ({ release, onStatusChange }: ReleaseReviewCardProps) 
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={handleDownload}
+            onClick={handleDownloadAudio}
             disabled={!release.audioFile}
           >
-            <Download className="h-4 w-4 mr-2" /> Download
+            <Download className="h-4 w-4 mr-2" /> Audio
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleDownloadCover}
+            disabled={!release.coverArt}
+          >
+            <Image className="h-4 w-4 mr-2" /> Cover
           </Button>
         </div>
         <div className="space-x-2">
