@@ -64,12 +64,14 @@ const WithdrawalForm = ({ availableBalance, onWithdrawalSubmitted }: WithdrawalF
       
       await onWithdrawalSubmitted(values);
       
-      // Explicitly specify non-optional values to match WithdrawalFormValues
-      form.reset({
-        amount: 10, // This is a number, not optional
-        accountName: user?.name || "", // This is a string, not optional
-        accountNumber: "", // This is a string, not optional
-      } as WithdrawalFormSchema); // Type assertion to ensure it matches the schema
+      // Define explicitly non-optional reset values that match WithdrawalFormSchema
+      const resetValues: WithdrawalFormSchema = {
+        amount: 10,
+        accountName: user?.name || "",
+        accountNumber: "",
+      };
+      
+      form.reset(resetValues);
     } catch (error) {
       console.error("Withdrawal form error:", error);
       toast.error("Request Failed", {
