@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -17,6 +16,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingSpinner from "../LoadingSpinner";
+import { WithdrawalFormValues } from "@/types";
 
 const withdrawalSchema = z.object({
   amount: z.number().min(10, { message: "Minimum withdrawal is $10" }),
@@ -27,7 +27,7 @@ const withdrawalSchema = z.object({
     .regex(/^\d+$/, { message: "Account number must contain only digits" }),
 });
 
-export type WithdrawalFormValues = z.infer<typeof withdrawalSchema>;
+type WithdrawalFormSchema = z.infer<typeof withdrawalSchema>;
 
 interface WithdrawalFormProps {
   availableBalance: number;
@@ -38,7 +38,7 @@ const WithdrawalForm = ({ availableBalance, onWithdrawalSubmitted }: WithdrawalF
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
 
-  const form = useForm<WithdrawalFormValues>({
+  const form = useForm<WithdrawalFormSchema>({
     resolver: zodResolver(withdrawalSchema),
     defaultValues: {
       amount: 10,
@@ -49,7 +49,7 @@ const WithdrawalForm = ({ availableBalance, onWithdrawalSubmitted }: WithdrawalF
   
   const maxAmount = availableBalance;
 
-  const onSubmit = async (values: WithdrawalFormValues) => {
+  const onSubmit = async (values: WithdrawalFormSchema) => {
     try {
       if (values.amount > maxAmount) {
         form.setError("amount", {

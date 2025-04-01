@@ -32,6 +32,12 @@ export interface Withdrawal {
   accountNumber: string;
 }
 
+export interface WithdrawalFormValues {
+  amount: number;
+  accountName: string;
+  accountNumber: string;
+}
+
 export interface DashboardStats {
   totalReleases: number;
   pendingReleases: number;
