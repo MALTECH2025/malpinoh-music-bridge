@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -63,6 +64,7 @@ const WithdrawalForm = ({ availableBalance, onWithdrawalSubmitted }: WithdrawalF
       
       await onWithdrawalSubmitted(values);
       
+      // Fix: Provide non-optional values for the form reset
       form.reset({
         amount: 10,
         accountName: user?.name || "",
