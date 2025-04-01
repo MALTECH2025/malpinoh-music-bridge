@@ -32,6 +32,7 @@ export interface Withdrawal {
   accountNumber: string;
 }
 
+// Ensure WithdrawalFormValues has all required fields (no optional fields)
 export interface WithdrawalFormValues {
   amount: number;
   accountName: string;

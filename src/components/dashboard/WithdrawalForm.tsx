@@ -62,16 +62,16 @@ const WithdrawalForm = ({ availableBalance, onWithdrawalSubmitted }: WithdrawalF
 
       setIsSubmitting(true);
       
+      // Since values is already of type WithdrawalFormSchema which matches WithdrawalFormValues
+      // we can pass it directly to onWithdrawalSubmitted
       await onWithdrawalSubmitted(values);
       
-      // Define explicitly non-optional reset values that match WithdrawalFormSchema
-      const resetValues: WithdrawalFormSchema = {
+      // Reset the form with values that match the schema exactly
+      form.reset({
         amount: 10,
         accountName: user?.name || "",
         accountNumber: "",
-      };
-      
-      form.reset(resetValues);
+      });
     } catch (error) {
       console.error("Withdrawal form error:", error);
       toast.error("Request Failed", {
