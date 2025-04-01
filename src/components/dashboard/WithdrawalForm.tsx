@@ -66,7 +66,7 @@ const WithdrawalForm = ({ availableBalance, onWithdrawalSubmitted }: WithdrawalF
       await onWithdrawalSubmitted(values);
       
       // Reset the form with explicit non-optional values to satisfy TypeScript
-      const resetValues: WithdrawalFormValues = {
+      const resetValues: WithdrawalFormSchema = {
         amount: 10,
         accountName: user?.name || "",
         accountNumber: "",
