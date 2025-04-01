@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -66,13 +65,11 @@ const WithdrawalForm = ({ availableBalance, onWithdrawalSubmitted }: WithdrawalF
       await onWithdrawalSubmitted(values);
       
       // Reset the form with explicit non-optional values to satisfy TypeScript
-      const resetValues: WithdrawalFormSchema = {
+      form.reset({
         amount: 10,
         accountName: user?.name || "",
         accountNumber: "",
-      };
-      
-      form.reset(resetValues);
+      });
     } catch (error) {
       console.error("Withdrawal form error:", error);
       toast.error("Request Failed", {
