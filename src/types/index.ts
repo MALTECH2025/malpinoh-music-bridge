@@ -54,3 +54,11 @@ export interface AdminStats extends DashboardStats {
   totalUsers: number;
   pendingWithdrawals: number;
 }
+
+// Add system settings interface
+export interface SystemSettings {
+  id: string;
+  key: string;
+  value: any;
+  updated_at: string;
+}

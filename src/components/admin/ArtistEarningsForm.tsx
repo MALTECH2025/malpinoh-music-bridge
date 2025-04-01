@@ -67,9 +67,24 @@ const ArtistEarningsForm = ({ artistId, artistName, onSuccess }: ArtistEarningsF
       const { error: artistError } = await supabase
         .from('artists')
         .update({
-          total_earnings: supabase.rpc('increment', { x: values.amount, row_id: artistId, table_name: 'artists', column_name: 'total_earnings' }),
-          available_balance: supabase.rpc('increment', { x: values.amount, row_id: artistId, table_name: 'artists', column_name: 'available_balance' }),
-          wallet_balance: supabase.rpc('increment', { x: values.amount, row_id: artistId, table_name: 'artists', column_name: 'wallet_balance' })
+          total_earnings: supabase.rpc('increment', { 
+            x: values.amount, 
+            row_id: artistId, 
+            table_name: 'artists', 
+            column_name: 'total_earnings' 
+          }),
+          available_balance: supabase.rpc('increment', { 
+            x: values.amount, 
+            row_id: artistId, 
+            table_name: 'artists', 
+            column_name: 'available_balance' 
+          }),
+          wallet_balance: supabase.rpc('increment', { 
+            x: values.amount, 
+            row_id: artistId, 
+            table_name: 'artists', 
+            column_name: 'wallet_balance' 
+          })
         })
         .eq('id', artistId);
 

@@ -47,8 +47,9 @@ const MinWithdrawalForm = () => {
   useEffect(() => {
     const fetchMinWithdrawal = async () => {
       try {
+        // Using the any type to bypass TypeScript checking for this custom table
         const { data, error } = await supabase
-          .from('system_settings')
+          .from('system_settings' as any)
           .select('value')
           .eq('key', 'minimum_withdrawal')
           .single();
@@ -74,7 +75,7 @@ const MinWithdrawalForm = () => {
       setIsSubmitting(true);
 
       const { error } = await supabase
-        .from('system_settings')
+        .from('system_settings' as any)
         .update({
           value: { amount: values.minAmount },
           updated_at: new Date().toISOString()
