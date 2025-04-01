@@ -4,12 +4,13 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { getReleasesForUser } from "@/lib/mock-data";
 import { ReleaseStatus } from "@/types";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Release } from "@/types";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Releases = () => {
   const { user } = useAuth();
@@ -19,15 +20,45 @@ const Releases = () => {
   useEffect(() => {
     const fetchReleases = async () => {
       try {
-        // Simulating API request delay
-        await new Promise(resolve => setTimeout(resolve, 800));
+        setLoading(true);
         
-        if (user) {
-          const userReleases = getReleasesForUser(user.id);
-          setReleases(userReleases);
+        if (!user) return;
+
+        const { data, error } = await supabase
+          .from('releases')
+          .select(`
+            *,
+            artists: artist_id (
+              name
+            )
+          `)
+          .eq('artist_id', user.id)
+          .order('release_date', { ascending: false });
+        
+        if (error) throw error;
+
+        if (data) {
+          const formattedReleases = data.map(item => ({
+            id: item.id,
+            title: item.title,
+            artist: item.artists?.name || 'Unknown Artist',
+            status: item.status as ReleaseStatus,
+            coverArt: item.cover_art_url,
+            audioFile: item.audio_file_url,
+            createdAt: new Date(item.release_date).toISOString(),
+            userId: item.artist_id,
+            genre: item.genre || "Unknown", // Use genre field if available
+            releaseDate: item.release_date,
+            platforms: item.platforms || [],
+            upc: item.upc,
+            isrc: item.isrc
+          }));
+
+          setReleases(formattedReleases);
         }
       } catch (error) {
         console.error("Error fetching releases:", error);
+        toast.error("Failed to load releases data");
       } finally {
         setLoading(false);
       }

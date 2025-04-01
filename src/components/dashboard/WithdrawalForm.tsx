@@ -31,7 +31,7 @@ type WithdrawalFormValues = z.infer<typeof withdrawalSchema>;
 
 interface WithdrawalFormProps {
   availableBalance: number;
-  onWithdrawalSubmitted?: () => void;
+  onWithdrawalSubmitted: (data: WithdrawalFormValues) => void;
 }
 
 const WithdrawalForm = ({ availableBalance, onWithdrawalSubmitted }: WithdrawalFormProps) => {
@@ -61,26 +61,15 @@ const WithdrawalForm = ({ availableBalance, onWithdrawalSubmitted }: WithdrawalF
 
       setIsSubmitting(true);
       
-      // Simulate API request
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      console.log("Withdrawal request:", values);
-      
-      toast.success("Withdrawal Request Submitted", {
-        description: `Your request for $${values.amount.toFixed(2)} is being processed.`,
-      });
+      await onWithdrawalSubmitted(values);
       
       form.reset({
         amount: 10,
         accountName: user?.name || "",
         accountNumber: "",
       });
-      
-      if (onWithdrawalSubmitted) {
-        onWithdrawalSubmitted();
-      }
     } catch (error) {
-      console.error("Withdrawal request error:", error);
+      console.error("Withdrawal form error:", error);
       toast.error("Request Failed", {
         description: "There was a problem submitting your withdrawal request.",
       });

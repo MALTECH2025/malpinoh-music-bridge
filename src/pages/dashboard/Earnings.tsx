@@ -5,9 +5,10 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import MainLayout from "@/components/layout/MainLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
-import { getDashboardStats, getWithdrawalsForUser } from "@/lib/mock-data";
 import { useEffect, useState } from "react";
 import { DashboardStats, Withdrawal } from "@/types";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Earnings = () => {
   const { user } = useAuth();
@@ -17,18 +18,88 @@ const Earnings = () => {
 
   const fetchData = async () => {
     try {
-      // Simulating API request delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+      setLoading(true);
       
-      if (user) {
-        const userStats = getDashboardStats(user.id);
-        const userWithdrawals = getWithdrawalsForUser(user.id);
+      if (!user) return;
+      
+      // Fetch artist financial data
+      const { data: artistData, error: artistError } = await supabase
+        .from('artists')
+        .select('total_earnings, available_balance')
+        .eq('id', user.id)
+        .single();
+      
+      if (artistError) throw artistError;
+      
+      // Fetch counts for stats
+      const { count: totalReleasesCount, error: totalReleasesError } = await supabase
+        .from('releases')
+        .select('*', { count: 'exact', head: true })
+        .eq('artist_id', user.id);
         
-        setStats(userStats);
-        setWithdrawals(userWithdrawals);
+      if (totalReleasesError) throw totalReleasesError;
+      
+      const { count: pendingReleasesCount, error: pendingReleasesError } = await supabase
+        .from('releases')
+        .select('*', { count: 'exact', head: true })
+        .eq('artist_id', user.id)
+        .eq('status', 'Pending');
+        
+      if (pendingReleasesError) throw pendingReleasesError;
+
+      const { count: approvedReleasesCount, error: approvedReleasesError } = await supabase
+        .from('releases')
+        .select('*', { count: 'exact', head: true })
+        .eq('artist_id', user.id)
+        .eq('status', 'Approved');
+        
+      if (approvedReleasesError) throw approvedReleasesError;
+      
+      const { count: rejectedReleasesCount, error: rejectedReleasesError } = await supabase
+        .from('releases')
+        .select('*', { count: 'exact', head: true })
+        .eq('artist_id', user.id)
+        .eq('status', 'Rejected');
+        
+      if (rejectedReleasesError) throw rejectedReleasesError;
+      
+      const statsData: DashboardStats = {
+        totalReleases: totalReleasesCount || 0,
+        pendingReleases: pendingReleasesCount || 0,
+        approvedReleases: approvedReleasesCount || 0,
+        rejectedReleases: rejectedReleasesCount || 0,
+        totalEarnings: artistData?.total_earnings || 0,
+        availableBalance: artistData?.available_balance || 0
+      };
+      
+      setStats(statsData);
+      
+      // Fetch all withdrawals for this user
+      const { data: withdrawalsData, error: withdrawalsError } = await supabase
+        .from('withdrawals')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+        
+      if (withdrawalsError) throw withdrawalsError;
+      
+      if (withdrawalsData) {
+        const formattedWithdrawals = withdrawalsData.map(item => ({
+          id: item.id,
+          userId: item.user_id,
+          amount: item.amount,
+          status: item.status,
+          createdAt: item.created_at,
+          processedAt: item.processed_at,
+          accountName: item.account_name,
+          accountNumber: item.account_number
+        }));
+        
+        setWithdrawals(formattedWithdrawals);
       }
     } catch (error) {
       console.error("Error fetching earnings data:", error);
+      toast.error("Failed to load earnings data");
     } finally {
       setLoading(false);
     }
@@ -37,6 +108,53 @@ const Earnings = () => {
   useEffect(() => {
     fetchData();
   }, [user]);
+
+  const handleWithdrawalSubmitted = async (withdrawalData: {
+    amount: number;
+    accountName: string;
+    accountNumber: string;
+  }) => {
+    try {
+      if (!user) return;
+
+      // Insert withdrawal request
+      const { data, error } = await supabase
+        .from('withdrawals')
+        .insert([
+          {
+            user_id: user.id,
+            artist_id: user.id,
+            amount: withdrawalData.amount,
+            account_name: withdrawalData.accountName,
+            account_number: withdrawalData.accountNumber,
+            status: 'PENDING'
+          }
+        ])
+        .select();
+
+      if (error) throw error;
+      
+      // Update available balance
+      const { error: updateError } = await supabase
+        .from('artists')
+        .update({ available_balance: (stats?.availableBalance || 0) - withdrawalData.amount })
+        .eq('id', user.id);
+      
+      if (updateError) throw updateError;
+      
+      toast.success("Withdrawal Request Submitted", {
+        description: `Your request for $${withdrawalData.amount.toFixed(2)} is being processed.`,
+      });
+      
+      // Refresh data
+      fetchData();
+    } catch (error) {
+      console.error("Withdrawal request error:", error);
+      toast.error("Withdrawal request failed", {
+        description: "There was a problem processing your withdrawal. Please try again.",
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -83,7 +201,7 @@ const Earnings = () => {
             <CardContent>
               <WithdrawalForm 
                 availableBalance={stats?.availableBalance || 0}
-                onWithdrawalSubmitted={fetchData}
+                onWithdrawalSubmitted={handleWithdrawalSubmitted}
               />
             </CardContent>
           </Card>

@@ -11,27 +11,33 @@ export type Database = {
     Tables: {
       artists: {
         Row: {
+          available_balance: number | null
           created_at: string | null
           email: string
           id: string
           name: string
           phone: string | null
+          total_earnings: number | null
           wallet_balance: number | null
         }
         Insert: {
+          available_balance?: number | null
           created_at?: string | null
           email: string
           id: string
           name: string
           phone?: string | null
+          total_earnings?: number | null
           wallet_balance?: number | null
         }
         Update: {
+          available_balance?: number | null
           created_at?: string | null
           email?: string
           id?: string
           name?: string
           phone?: string | null
+          total_earnings?: number | null
           wallet_balance?: number | null
         }
         Relationships: []
@@ -74,30 +80,36 @@ export type Database = {
           audio_file_url: string | null
           cover_art_url: string | null
           id: string
+          isrc: string | null
           platforms: string[]
           release_date: string
           status: Database["public"]["Enums"]["release_status"]
           title: string
+          upc: string | null
         }
         Insert: {
           artist_id: string
           audio_file_url?: string | null
           cover_art_url?: string | null
           id?: string
+          isrc?: string | null
           platforms: string[]
           release_date: string
           status?: Database["public"]["Enums"]["release_status"]
           title: string
+          upc?: string | null
         }
         Update: {
           artist_id?: string
           audio_file_url?: string | null
           cover_art_url?: string | null
           id?: string
+          isrc?: string | null
           platforms?: string[]
           release_date?: string
           status?: Database["public"]["Enums"]["release_status"]
           title?: string
+          upc?: string | null
         }
         Relationships: [
           {
@@ -129,6 +141,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      withdrawals: {
+        Row: {
+          account_name: string
+          account_number: string
+          amount: number
+          artist_id: string
+          created_at: string
+          id: string
+          processed_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          account_name: string
+          account_number: string
+          amount: number
+          artist_id: string
+          created_at?: string
+          id?: string
+          processed_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          account_name?: string
+          account_number?: string
+          amount?: number
+          artist_id?: string
+          created_at?: string
+          id?: string
+          processed_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "withdrawals_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

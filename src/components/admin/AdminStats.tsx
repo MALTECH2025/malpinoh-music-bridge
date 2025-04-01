@@ -57,6 +57,26 @@ const AdminStats = ({ stats }: AdminStatsProps) => {
         value={stats.pendingWithdrawals}
         description="Withdrawal requests"
       />
+      <StatsCard
+        title="Total Earnings"
+        value={`$${stats.totalEarnings.toFixed(2)}`}
+        description="All artists' earnings"
+      />
+      <StatsCard
+        title="Available Balance"
+        value={`$${stats.availableBalance.toFixed(2)}`}
+        description="Total available balance"
+      />
+      <StatsCard
+        title="Total Releases"
+        value={stats.totalReleases}
+        description="All releases"
+      />
+      <StatsCard
+        title="Rejected Releases"
+        value={stats.rejectedReleases}
+        description="Rejected releases"
+      />
     </div>
   );
 };

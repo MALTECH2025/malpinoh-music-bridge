@@ -5,13 +5,13 @@ import WithdrawalCard from "@/components/dashboard/WithdrawalCard";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { getDashboardStats, getWithdrawalsForUser } from "@/lib/mock-data";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { DashboardStats as DashboardStatsType } from "@/types";
 import { Release, Withdrawal } from "@/types";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -26,11 +26,72 @@ const Dashboard = () => {
         setLoading(true);
         
         if (user) {
-          // Get mock data for stats and withdrawals (these could be replaced with real data later)
-          const userStats = getDashboardStats(user.id);
-          const userWithdrawals = getWithdrawalsForUser(user.id);
+          // Fetch artist details
+          const { data: artistData, error: artistError } = await supabase
+            .from('artists')
+            .select('total_earnings, available_balance')
+            .eq('id', user.id)
+            .single();
           
-          // Fetch real releases data from Supabase
+          if (artistError) {
+            throw artistError;
+          }
+          
+          // Fetch releases count
+          const { count: totalReleasesCount, error: totalReleasesError } = await supabase
+            .from('releases')
+            .select('*', { count: 'exact', head: true })
+            .eq('artist_id', user.id);
+            
+          if (totalReleasesError) {
+            throw totalReleasesError;
+          }
+          
+          // Fetch pending releases count
+          const { count: pendingReleasesCount, error: pendingReleasesError } = await supabase
+            .from('releases')
+            .select('*', { count: 'exact', head: true })
+            .eq('artist_id', user.id)
+            .eq('status', 'Pending');
+            
+          if (pendingReleasesError) {
+            throw pendingReleasesError;
+          }
+          
+          // Fetch approved releases count
+          const { count: approvedReleasesCount, error: approvedReleasesError } = await supabase
+            .from('releases')
+            .select('*', { count: 'exact', head: true })
+            .eq('artist_id', user.id)
+            .eq('status', 'Approved');
+            
+          if (approvedReleasesError) {
+            throw approvedReleasesError;
+          }
+          
+          // Fetch rejected releases count
+          const { count: rejectedReleasesCount, error: rejectedReleasesError } = await supabase
+            .from('releases')
+            .select('*', { count: 'exact', head: true })
+            .eq('artist_id', user.id)
+            .eq('status', 'Rejected');
+            
+          if (rejectedReleasesError) {
+            throw rejectedReleasesError;
+          }
+          
+          const statsData: DashboardStatsType = {
+            totalReleases: totalReleasesCount || 0,
+            pendingReleases: pendingReleasesCount || 0,
+            approvedReleases: approvedReleasesCount || 0,
+            rejectedReleases: rejectedReleasesCount || 0,
+            totalEarnings: artistData?.total_earnings || 0,
+            availableBalance: artistData?.available_balance || 0
+          };
+          
+          setStats(statsData);
+          
+          // Fetch recent releases (limit to 3)
           const { data: releasesData, error: releasesError } = await supabase
             .from('releases')
             .select(`
@@ -57,19 +118,46 @@ const Dashboard = () => {
               audioFile: item.audio_file_url,
               createdAt: new Date(item.release_date).toISOString(),
               userId: item.artist_id,
-              genre: "Unknown", // This field is not in the database yet
+              genre: item.genre || "Unknown", // Use genre field if available
               releaseDate: item.release_date,
               platforms: item.platforms || [],
+              upc: item.upc,
+              isrc: item.isrc
             }));
             
             setReleases(formattedReleases);
           }
           
-          setStats(userStats);
-          setWithdrawals(userWithdrawals.slice(0, 2));
+          // Fetch recent withdrawals (limit to 2)
+          const { data: withdrawalsData, error: withdrawalsError } = await supabase
+            .from('withdrawals')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(2);
+            
+          if (withdrawalsError) {
+            throw withdrawalsError;
+          }
+          
+          if (withdrawalsData) {
+            const formattedWithdrawals = withdrawalsData.map(item => ({
+              id: item.id,
+              userId: item.user_id,
+              amount: item.amount,
+              status: item.status,
+              createdAt: item.created_at,
+              processedAt: item.processed_at,
+              accountName: item.account_name,
+              accountNumber: item.account_number
+            }));
+            
+            setWithdrawals(formattedWithdrawals);
+          }
         }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
+        toast.error("Failed to load dashboard data");
       } finally {
         setLoading(false);
       }

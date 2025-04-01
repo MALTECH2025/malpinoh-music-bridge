@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -25,7 +26,7 @@ const AdminReleases = () => {
             name
           )
         `)
-        .order('created_at', { ascending: false });
+        .order('release_date', { ascending: false });
       
       // Only apply status filter if it's a valid release status and not "all"
       if (status && status !== "all" && 
@@ -45,10 +46,10 @@ const AdminReleases = () => {
           status: item.status as ReleaseStatus,
           coverArt: item.cover_art_url || null,
           audioFile: item.audio_file_url || null,
-          createdAt: new Date(item.created_at || item.release_date).toISOString(),
+          createdAt: item.release_date,
           platforms: item.platforms || [],
           userId: item.artist_id,
-          genre: "Unknown", // Not available in the response
+          genre: item.genre || "Unknown",
           releaseDate: item.release_date,
           upc: item.upc,
           isrc: item.isrc,
