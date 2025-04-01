@@ -19,30 +19,24 @@ const AdminWithdrawals = () => {
       
       let query = supabase
         .from('withdrawals')
-        .select(`
-          *,
-          artists: artist_id (
-            name
-          )
-        `)
-        .order('created_at', { ascending: false });
+        .select('*');
       
       if (status && status !== "all") {
         query = query.eq('status', status.toUpperCase());
       }
       
-      const { data, error } = await query;
+      const { data, error } = await query.order('created_at', { ascending: false });
       
       if (error) throw error;
       
       if (data) {
-        const formattedWithdrawals = data.map(item => ({
+        const formattedWithdrawals: Withdrawal[] = data.map(item => ({
           id: item.id,
           userId: item.user_id,
           amount: item.amount,
-          status: item.status,
+          status: item.status as 'PENDING' | 'APPROVED' | 'REJECTED',
           createdAt: item.created_at,
-          processedAt: item.processed_at,
+          processedAt: item.processed_at || undefined,
           accountName: item.account_name,
           accountNumber: item.account_number
         }));
@@ -67,19 +61,19 @@ const AdminWithdrawals = () => {
       if (!withdrawal) return;
       
       // First get the artist data
-      const { data: artistData, error: artistError } = await supabase
+      const { data: withdrawalData, error: withdrawalError } = await supabase
         .from('withdrawals')
         .select('artist_id, amount')
         .eq('id', id)
         .single();
       
-      if (artistError) throw artistError;
+      if (withdrawalError) throw withdrawalError;
       
-      const { artist_id, amount } = artistData;
+      const { artist_id, amount } = withdrawalData;
       
       // Begin transaction-like operations
       // 1. Update withdrawal status
-      const { error: withdrawalError } = await supabase
+      const { error: updateError } = await supabase
         .from('withdrawals')
         .update({
           status: newStatus,
@@ -87,7 +81,7 @@ const AdminWithdrawals = () => {
         })
         .eq('id', id);
       
-      if (withdrawalError) throw withdrawalError;
+      if (updateError) throw updateError;
       
       // 2. If rejected, add the amount back to available_balance
       if (newStatus === 'REJECTED') {
@@ -99,7 +93,7 @@ const AdminWithdrawals = () => {
         
         if (getArtistError) throw getArtistError;
         
-        const currentBalance = artistData.available_balance || 0;
+        const currentBalance = artistData?.available_balance || 0;
         
         const { error: updateBalanceError } = await supabase
           .from('artists')

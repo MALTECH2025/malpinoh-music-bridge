@@ -47,11 +47,11 @@ const Releases = () => {
             audioFile: item.audio_file_url,
             createdAt: new Date(item.release_date).toISOString(),
             userId: item.artist_id,
-            genre: item.genre || "Unknown", // Use genre field if available
+            genre: "Unknown",
             releaseDate: item.release_date,
             platforms: item.platforms || [],
-            upc: item.upc,
-            isrc: item.isrc
+            upc: item.upc || null,
+            isrc: item.isrc || null
           }));
 
           setReleases(formattedReleases);

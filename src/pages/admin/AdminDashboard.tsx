@@ -124,10 +124,10 @@ const AdminDashboard = () => {
           createdAt: item.release_date,
           platforms: item.platforms || [],
           userId: item.artist_id,
-          genre: item.genre || "Unknown",
+          genre: "Unknown",
           releaseDate: item.release_date,
-          upc: item.upc,
-          isrc: item.isrc,
+          upc: item.upc || null,
+          isrc: item.isrc || null,
         }));
 
         setPendingReleases(formattedReleases);

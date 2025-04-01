@@ -118,11 +118,11 @@ const Dashboard = () => {
               audioFile: item.audio_file_url,
               createdAt: new Date(item.release_date).toISOString(),
               userId: item.artist_id,
-              genre: item.genre || "Unknown", // Use genre field if available
+              genre: "Unknown",
               releaseDate: item.release_date,
               platforms: item.platforms || [],
-              upc: item.upc,
-              isrc: item.isrc
+              upc: item.upc || null,
+              isrc: item.isrc || null
             }));
             
             setReleases(formattedReleases);
@@ -141,13 +141,13 @@ const Dashboard = () => {
           }
           
           if (withdrawalsData) {
-            const formattedWithdrawals = withdrawalsData.map(item => ({
+            const formattedWithdrawals: Withdrawal[] = withdrawalsData.map(item => ({
               id: item.id,
               userId: item.user_id,
               amount: item.amount,
-              status: item.status,
+              status: item.status as 'PENDING' | 'APPROVED' | 'REJECTED',
               createdAt: item.created_at,
-              processedAt: item.processed_at,
+              processedAt: item.processed_at || undefined,
               accountName: item.account_name,
               accountNumber: item.account_number
             }));

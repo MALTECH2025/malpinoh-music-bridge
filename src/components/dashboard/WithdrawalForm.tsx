@@ -27,11 +27,11 @@ const withdrawalSchema = z.object({
     .regex(/^\d+$/, { message: "Account number must contain only digits" }),
 });
 
-type WithdrawalFormValues = z.infer<typeof withdrawalSchema>;
+export type WithdrawalFormValues = z.infer<typeof withdrawalSchema>;
 
 interface WithdrawalFormProps {
   availableBalance: number;
-  onWithdrawalSubmitted: (data: WithdrawalFormValues) => void;
+  onWithdrawalSubmitted: (data: WithdrawalFormValues) => Promise<void>;
 }
 
 const WithdrawalForm = ({ availableBalance, onWithdrawalSubmitted }: WithdrawalFormProps) => {

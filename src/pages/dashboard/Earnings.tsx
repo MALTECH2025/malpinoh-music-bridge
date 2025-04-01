@@ -6,7 +6,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
-import { DashboardStats, Withdrawal } from "@/types";
+import { DashboardStats, Withdrawal, WithdrawalFormValues } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -84,13 +84,13 @@ const Earnings = () => {
       if (withdrawalsError) throw withdrawalsError;
       
       if (withdrawalsData) {
-        const formattedWithdrawals = withdrawalsData.map(item => ({
+        const formattedWithdrawals: Withdrawal[] = withdrawalsData.map(item => ({
           id: item.id,
           userId: item.user_id,
           amount: item.amount,
-          status: item.status,
+          status: item.status as 'PENDING' | 'APPROVED' | 'REJECTED',
           createdAt: item.created_at,
-          processedAt: item.processed_at,
+          processedAt: item.processed_at || undefined,
           accountName: item.account_name,
           accountNumber: item.account_number
         }));
@@ -109,11 +109,7 @@ const Earnings = () => {
     fetchData();
   }, [user]);
 
-  const handleWithdrawalSubmitted = async (withdrawalData: {
-    amount: number;
-    accountName: string;
-    accountNumber: string;
-  }) => {
+  const handleWithdrawalSubmitted = async (withdrawalData: WithdrawalFormValues) => {
     try {
       if (!user) return;
 
@@ -137,7 +133,9 @@ const Earnings = () => {
       // Update available balance
       const { error: updateError } = await supabase
         .from('artists')
-        .update({ available_balance: (stats?.availableBalance || 0) - withdrawalData.amount })
+        .update({ 
+          available_balance: (stats?.availableBalance || 0) - withdrawalData.amount 
+        })
         .eq('id', user.id);
       
       if (updateError) throw updateError;
