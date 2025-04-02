@@ -6,6 +6,7 @@ import { PostgrestQueryBuilder, PostgrestFilterBuilder } from '@supabase/supabas
 
 // Augment the Supabase client types
 declare module '@supabase/supabase-js' {
+  // Use a generic interface reference instead of importing Database directly
   interface SupabaseClient {
     from<T extends keyof Database['public']['Tables'] | 'withdrawals' | 'system_settings'>(
       table: T
@@ -19,3 +20,6 @@ declare module '@supabase/supabase-js' {
     ): PostgrestFilterBuilder<any>;
   }
 }
+
+// Reference the global Database interface that's defined in the generated Supabase types
+// without importing it directly, which would cause the duplicate identifier error
