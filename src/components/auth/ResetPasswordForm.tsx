@@ -16,6 +16,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import LoadingSpinner from "../LoadingSpinner";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const resetPasswordSchema = z.object({
   currentPassword: z.string().min(6, "Current password is too short"),
