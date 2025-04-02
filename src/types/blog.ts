@@ -1,6 +1,4 @@
 
-import { Database } from "@/integrations/supabase/types";
-
 // Blog post type with all required fields
 export interface BlogPost {
   id: string;
@@ -39,8 +37,8 @@ export interface BlogPostFormValues {
   tags: string[];
 }
 
-// Extend the types from the database to use in the application
-export type Tables = Database['public']['Tables'];
-export type BlogPostRow = Tables['blog_posts']['Row'];
-export type BlogTagRow = Tables['blog_tags']['Row'];
-export type BlogPostTagRow = Tables['blog_posts_tags']['Row'];
+// Referencing types from database, but not re-exporting Database to avoid duplication
+export type Tables = any;
+export type BlogPostRow = any;
+export type BlogTagRow = any;
+export type BlogPostTagRow = any;

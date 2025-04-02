@@ -2,6 +2,7 @@
 // Earnings Types
 export interface Earning {
   id: string;
+  artist_id: string;
   amount: number;
   status: "Pending" | "Paid";
   date: string;
