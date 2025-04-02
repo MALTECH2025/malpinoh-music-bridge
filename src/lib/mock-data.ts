@@ -1,155 +1,141 @@
-import { ReleaseStatus, Release, Withdrawal, Earning } from "@/types";
 
-// Sample releases data
+// Mock data for development and testing
+
+import { 
+  Release, 
+  ReleaseStatus, 
+  Earning, 
+  Withdrawal,
+  AuthUser,
+  BlogPost,
+  BlogTag
+} from '@/types';
+
+// Mock releases
 export const mockReleases: Release[] = [
   {
-    id: "1",
-    title: "Summer Vibes",
-    artist: "DJ Rhythm",
-    artist_id: "user-123",
-    userId: "user-123",
+    id: '1',
+    title: 'Summer Vibes',
+    artist_id: '123',
+    artist: 'John Doe',
+    release_date: '2023-06-01',
+    platforms: ['Spotify', 'Apple Music'],
     status: ReleaseStatus.APPROVED,
-    coverArt: "/placeholder.svg",
-    audioFile: "/placeholder.mp3",
-    cover_art_url: "/placeholder.svg",
-    audio_file_url: "/placeholder.mp3",
-    genre: "Electronic",
-    releaseDate: "2023-06-15",
-    release_date: "2023-06-15",
-    createdAt: "2023-05-10T12:00:00Z",
-    upc: "123456789012",
-    isrc: "USABC1234567",
-    platforms: ["Spotify", "Apple Music", "YouTube Music"]
+    coverArt: 'https://picsum.photos/200',
+    createdAt: '2023-05-01T00:00:00.000Z',
   },
   {
-    id: "2",
-    title: "Midnight Dreams",
-    artist: "Luna Sky",
-    artist_id: "user-123",
-    userId: "user-123",
+    id: '2',
+    title: 'Winter Dreams',
+    artist_id: '123',
+    artist: 'John Doe',
+    release_date: '2023-12-01',
+    platforms: ['Spotify', 'Apple Music', 'Tidal'],
     status: ReleaseStatus.PENDING,
-    coverArt: "/placeholder.svg",
-    audioFile: "/placeholder.mp3", 
-    cover_art_url: "/placeholder.svg",
-    audio_file_url: "/placeholder.mp3",
-    genre: "R&B",
-    releaseDate: "2023-07-22",
-    release_date: "2023-07-22",
-    createdAt: "2023-06-10T10:30:00Z",
-    platforms: ["Spotify", "Apple Music", "Deezer"]
+    coverArt: 'https://picsum.photos/200',
+    createdAt: '2023-11-01T00:00:00.000Z',
   },
   {
-    id: "3",
-    title: "Urban Echoes",
-    artist: "MC Flow",
-    artist_id: "user-456",
-    userId: "user-456",
+    id: '3',
+    title: 'Autumn Leaves',
+    artist_id: '123',
+    artist: 'John Doe',
+    release_date: '2023-09-01',
+    platforms: ['Spotify'],
     status: ReleaseStatus.REJECTED,
-    coverArt: "/placeholder.svg",
-    audioFile: "/placeholder.mp3",
-    cover_art_url: "/placeholder.svg",
-    audio_file_url: "/placeholder.mp3",
-    genre: "Hip Hop",
-    releaseDate: "2023-08-05",
-    release_date: "2023-08-05", 
-    createdAt: "2023-07-01T14:15:00Z",
-    rejectionReason: "Poor audio quality",
-    platforms: ["Spotify", "SoundCloud", "Tidal"]
-  }
-];
-
-// Sample withdrawals data
-export const mockWithdrawals: Withdrawal[] = [
-  {
-    id: "1",
-    userId: "user-123",
-    amount: 50,
-    status: "APPROVED",
-    createdAt: "2023-07-10",
-    processedAt: "2023-07-12",
-    accountName: "DJ Rhythm",
-    accountNumber: "1234567890"
+    coverArt: 'https://picsum.photos/200',
+    createdAt: '2023-08-01T00:00:00.000Z',
+    rejectionReason: 'Cover art resolution too low',
   },
-  {
-    id: "2",
-    userId: "user-123",
-    amount: 70.5,
-    status: "PENDING",
-    createdAt: "2023-08-20",
-    accountName: "Luna Sky",
-    accountNumber: "1234567890"
-  }
 ];
 
-// Sample earnings data
+// Mock earnings
 export const mockEarnings: Earning[] = [
   {
-    id: "1",
-    userId: "user-123",
+    id: '1',
+    artist_id: '123', // Changed from userId to artist_id
     amount: 120.50,
-    createdAt: "2023-06-15",
-    accountName: "DJ Rhythm",
-    accountNumber: "1234567890"
+    date: '2023-06-15T00:00:00.000Z',
+    status: 'Paid',
   },
   {
-    id: "2",
-    userId: "user-123",
-    amount: 80.00,
-    createdAt: "2023-07-22",
-    accountName: "Luna Sky",
-    accountNumber: "1234567890"
+    id: '2',
+    artist_id: '123', // Changed from userId to artist_id
+    amount: 85.25,
+    date: '2023-07-15T00:00:00.000Z',
+    status: 'Pending',
+  },
+];
+
+// Mock withdrawals
+export const mockWithdrawals: Withdrawal[] = [
+  {
+    id: '1',
+    userId: '123',
+    amount: 100,
+    status: 'APPROVED',
+    createdAt: '2023-06-20T00:00:00.000Z',
+    processedAt: '2023-06-22T00:00:00.000Z',
+    accountName: 'John Doe',
+    accountNumber: '123456789',
+  },
+  {
+    id: '2',
+    userId: '123',
+    amount: 50,
+    status: 'PENDING',
+    createdAt: '2023-07-20T00:00:00.000Z',
+    accountName: 'John Doe',
+    accountNumber: '123456789',
+  },
+];
+
+// Mock user
+export const mockUser: AuthUser = {
+  id: '123',
+  email: 'john.doe@example.com',
+  name: 'John Doe',
+};
+
+// Mock blog posts
+export const mockBlogPosts: BlogPost[] = [
+  {
+    id: '1',
+    title: 'Tips for New Artists',
+    content: '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>',
+    author_id: '123',
+    published: true,
+    created_at: '2023-05-01T00:00:00.000Z',
+    updated_at: '2023-05-01T00:00:00.000Z',
+    cover_image_url: 'https://picsum.photos/800/400',
+    author_name: 'John Doe'
+  },
+  {
+    id: '2',
+    title: 'Music Distribution Strategies',
+    content: '<p>Vestibulum ante ipsum primis in faucibus orci luctus...</p>',
+    author_id: '123',
+    published: true,
+    created_at: '2023-06-15T00:00:00.000Z',
+    updated_at: '2023-06-15T00:00:00.000Z',
+    cover_image_url: 'https://picsum.photos/800/400',
+    audio_url: 'https://example.com/audio.mp3',
+    author_name: 'John Doe'
   }
 ];
 
-export const getReleasesForUser = (userId: string): Release[] => {
-  return mockReleases.filter(release => release.userId === userId);
-};
-
-export const getWithdrawalsForUser = (userId: string): Withdrawal[] => {
-  return mockWithdrawals.filter(withdrawal => withdrawal.userId === userId);
-};
-
-export const getDashboardStats = (userId: string) => {
-  const userReleases = getReleasesForUser(userId);
-  const totalReleases = userReleases.length;
-  const pendingReleases = userReleases.filter(r => r.status === ReleaseStatus.PENDING).length;
-  const approvedReleases = userReleases.filter(r => r.status === ReleaseStatus.APPROVED).length;
-  const rejectedReleases = userReleases.filter(r => r.status === ReleaseStatus.REJECTED).length;
-  
-  // Mock earnings calculation
-  const totalEarnings = 120.50; // In a real app, this would be calculated based on streams, etc.
-  const withdrawnAmount = mockWithdrawals
-    .filter(w => w.userId === userId && w.status === 'APPROVED')
-    .reduce((sum, w) => sum + w.amount, 0);
-    
-  const availableBalance = totalEarnings - withdrawnAmount;
-  
-  return {
-    totalReleases,
-    pendingReleases,
-    approvedReleases,
-    rejectedReleases,
-    totalEarnings,
-    availableBalance
-  };
-};
-
-export const getAdminStats = () => {
-  const totalUsers = 2; // Mock data
-  const totalReleases = mockReleases.length;
-  const pendingReleases = mockReleases.filter(r => r.status === ReleaseStatus.PENDING).length;
-  const approvedReleases = mockReleases.filter(r => r.status === ReleaseStatus.APPROVED).length;
-  const rejectedReleases = mockReleases.filter(r => r.status === ReleaseStatus.REJECTED).length;
-  const pendingWithdrawals = mockWithdrawals.filter(w => w.status === 'PENDING').length;
-  
-  return {
-    totalUsers,
-    totalReleases,
-    pendingReleases,
-    approvedReleases,
-    rejectedReleases,
-    totalEarnings: 0, // Admin doesn't have earnings
-    availableBalance: 0, // Admin doesn't have balance
-    pendingWithdrawals
-  };
-};
+// Mock blog tags
+export const mockBlogTags: BlogTag[] = [
+  {
+    id: '1',
+    name: 'Music Tips',
+  },
+  {
+    id: '2',
+    name: 'Distribution',
+  },
+  {
+    id: '3',
+    name: 'Marketing',
+  }
+];
