@@ -1,7 +1,8 @@
 
 // This file adds custom type augmentations to make TypeScript understand our database schema
 
-import { Database } from "@/integrations/supabase/types";
+// Note: We're not importing Database directly to avoid duplicate identifier issues
+import { PostgrestQueryBuilder, PostgrestFilterBuilder } from '@supabase/supabase-js';
 
 // Augment the Supabase client types
 declare module '@supabase/supabase-js' {
