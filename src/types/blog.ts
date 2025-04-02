@@ -13,12 +13,14 @@ export interface BlogPost {
   cover_image_url?: string | null;
   audio_url?: string | null;
   tags?: BlogTag[];
+  author_name?: string; // Added this field to fix the error in BlogPost.tsx
 }
 
 // Blog tag type
 export interface BlogTag {
   id: string;
   name: string;
+  created_at?: string;
 }
 
 // Blog post with tag relation
@@ -26,6 +28,15 @@ export interface BlogPostTag {
   post_id: string;
   tag_id: string;
   blog_tags?: BlogTag;
+}
+
+export interface BlogPostFormValues {
+  title: string;
+  content: string;
+  cover_image?: File;
+  audio_file?: File;
+  published: boolean;
+  tags: string[];
 }
 
 // Extend the types from the database to use in the application
