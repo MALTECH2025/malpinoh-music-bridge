@@ -63,7 +63,7 @@ const ArtistEarningsForm = ({ artistId, artistName, onSuccess }: ArtistEarningsF
 
       if (earningsError) throw earningsError;
 
-      // 2. Update artist balances
+      // 2. Update artist balances using direct updates instead of rpc
       const { error: artistError } = await supabase
         .from('artists')
         .update({

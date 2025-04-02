@@ -18,7 +18,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import ArtistEarningsForm from "@/components/admin/ArtistEarningsForm";
 import ArtistStatusForm from "@/components/admin/ArtistStatusForm";
@@ -51,9 +50,13 @@ const ManageArtists = () => {
         .select('*')
         .order('name');
         
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching artists:', error);
+        throw error;
+      }
       
       if (data) {
+        console.log('Artists data:', data);
         setArtists(data as Artist[]);
       }
     } catch (error) {
@@ -124,11 +127,11 @@ const ManageArtists = () => {
                 {artists.length > 0 ? (
                   artists.map((artist) => (
                     <TableRow key={artist.id}>
-                      <TableCell className="font-medium">{artist.name}</TableCell>
+                      <TableCell className="font-medium">{artist.name || 'Unnamed'}</TableCell>
                       <TableCell>{artist.email}</TableCell>
                       <TableCell>
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusBadgeClass(artist.status)}`}>
-                          {artist.status?.charAt(0).toUpperCase() + artist.status?.slice(1)}
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusBadgeClass(artist.status || 'active')}`}>
+                          {(artist.status || 'active').charAt(0).toUpperCase() + (artist.status || 'active').slice(1)}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">${artist.total_earnings?.toFixed(2) || '0.00'}</TableCell>
@@ -189,7 +192,7 @@ const ManageArtists = () => {
             <ArtistStatusForm
               artistId={selectedArtist.id}
               artistName={selectedArtist.name}
-              currentStatus={selectedArtist.status}
+              currentStatus={selectedArtist.status || 'active'}
               currentReason={selectedArtist.ban_reason || ''}
               onSuccess={handleSuccess}
             />

@@ -17,8 +17,8 @@ const WithdrawalFormCard = ({ availableBalance, onWithdrawalSubmitted }: Withdra
       </CardHeader>
       <CardContent>
         <WithdrawalForm
-          availableBalance={availableBalance}
-          onWithdrawalSubmitted={onWithdrawalSubmitted}
+          maxAmount={availableBalance}
+          onSubmit={onWithdrawalSubmitted}
         />
       </CardContent>
     </Card>

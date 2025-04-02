@@ -191,13 +191,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          user_id: string
-          role: Database["public"]["Enums"]["user_role"]
-        }
-        Returns: boolean
-      }
+      has_role:
+        | {
+            Args: {
+              role_name: string
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              user_id: string
+              role: Database["public"]["Enums"]["user_role"]
+            }
+            Returns: boolean
+          }
     }
     Enums: {
       earnings_status: "Pending" | "Paid"

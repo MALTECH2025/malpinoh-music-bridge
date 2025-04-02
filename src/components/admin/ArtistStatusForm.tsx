@@ -80,9 +80,12 @@ const ArtistStatusForm = ({
         status: values.status,
       };
 
-      // Only update reason when needed
+      // Only update ban_reason when needed
       if (needsReason) {
         updateData.ban_reason = values.reason || null;
+      } else {
+        // Clear reason if status is active
+        updateData.ban_reason = null;
       }
 
       const { error } = await supabase
