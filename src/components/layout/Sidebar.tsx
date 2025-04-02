@@ -13,6 +13,7 @@ import {
   CreditCard,
   GanttChart,
   BookText,
+  FileText,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -32,6 +33,7 @@ const Sidebar = ({ className, isCollapsed = false }: SidebarProps) => {
         { href: "/admin/artists", label: "Artists", icon: Users },
         { href: "/admin/releases", label: "Releases", icon: FileCheck },
         { href: "/admin/withdrawals", label: "Withdrawals", icon: CreditCard },
+        { href: "/admin/blog", label: "Blog", icon: FileText },
         { href: "/admin/settings", label: "Settings", icon: Settings },
       ]
     : [
@@ -45,6 +47,7 @@ const Sidebar = ({ className, isCollapsed = false }: SidebarProps) => {
   // Add legal links at the bottom for all users
   const legalItems = [
     { href: "/legal", label: "Legal", icon: BookText },
+    { href: "/blog", label: "Blog", icon: FileText },
   ];
 
   return (

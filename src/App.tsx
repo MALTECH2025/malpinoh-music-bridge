@@ -25,6 +25,11 @@ import Privacy from "./pages/legal/Privacy";
 import Copyright from "./pages/legal/Copyright";
 import Legal from "./pages/legal/Legal";
 import ResetPassword from "./pages/settings/ResetPassword";
+import Blog from "./pages/blog/Blog";
+import BlogPost from "./pages/blog/BlogPost";
+import AdminBlog from "./pages/admin/AdminBlog"; 
+import BlogPostCreate from "./pages/admin/BlogPostCreate";
+import BlogPostEdit from "./pages/admin/BlogPostEdit";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +46,10 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            
+            {/* Blog Routes */}
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:id" element={<BlogPost />} />
             
             {/* Legal Pages */}
             <Route path="/legal" element={<Legal />} />
@@ -62,6 +71,9 @@ const App = () => (
             <Route path="/admin/releases" element={<AdminReleases />} />
             <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
+            <Route path="/admin/blog" element={<AdminBlog />} />
+            <Route path="/admin/blog/create" element={<BlogPostCreate />} />
+            <Route path="/admin/blog/edit/:id" element={<BlogPostEdit />} />
 
             {/* Catch-all Route */}
             <Route path="*" element={<NotFound />} />

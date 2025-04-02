@@ -27,6 +27,9 @@ const Navbar = () => {
           <Link to="/" className="text-sm font-medium transition-colors hover:text-primary">
             Home
           </Link>
+          <Link to="/blog" className="text-sm font-medium transition-colors hover:text-primary">
+            Blog
+          </Link>
           {!user && (
             <>
               <Link to="/about" className="text-sm font-medium transition-colors hover:text-primary">

@@ -42,6 +42,90 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_posts: {
+        Row: {
+          audio_url: string | null
+          author_id: string
+          content: string
+          cover_image_url: string | null
+          created_at: string
+          id: string
+          published: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          audio_url?: string | null
+          author_id: string
+          content: string
+          cover_image_url?: string | null
+          created_at?: string
+          id?: string
+          published?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          audio_url?: string | null
+          author_id?: string
+          content?: string
+          cover_image_url?: string | null
+          created_at?: string
+          id?: string
+          published?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      blog_posts_tags: {
+        Row: {
+          post_id: string
+          tag_id: string
+        }
+        Insert: {
+          post_id: string
+          tag_id: string
+        }
+        Update: {
+          post_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_tags_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_posts_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "blog_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_tags: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       earnings: {
         Row: {
           amount: number

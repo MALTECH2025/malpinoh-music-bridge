@@ -46,6 +46,36 @@ export interface ReleaseFormValues {
   audio_file?: File;
 }
 
+// Blog Types
+export interface BlogPost {
+  id: string;
+  title: string;
+  content: string;
+  author_id: string;
+  cover_image_url?: string | null;
+  audio_url?: string | null;
+  published: boolean;
+  created_at: string;
+  updated_at: string;
+  tags?: BlogTag[];
+  author_name?: string;
+}
+
+export interface BlogTag {
+  id: string;
+  name: string;
+  created_at: string;
+}
+
+export interface BlogPostFormValues {
+  title: string;
+  content: string;
+  cover_image?: File;
+  audio_file?: File;
+  published: boolean;
+  tags: string[];
+}
+
 // Earnings Types
 export interface Earning {
   id: string;
