@@ -1,18 +1,17 @@
 
 // This file adds custom type augmentations to make TypeScript understand our database schema
 
-// Note: We're not importing Database directly to avoid duplicate identifier issues
+// We're not importing Database directly to avoid conflicts with the auto-generated types
 import { PostgrestQueryBuilder, PostgrestFilterBuilder } from '@supabase/supabase-js';
 
-// Augment the Supabase client types
+// Instead of declaring a duplicate Database type, we'll augment the existing one
 declare module '@supabase/supabase-js' {
-  // Use a generic interface reference instead of importing Database directly
+  // Use interface augmentation for the SupabaseClient
   interface SupabaseClient {
-    from<T extends keyof Database['public']['Tables'] | 'withdrawals' | 'system_settings'>(
+    // Use string index signatures to allow any table name without needing to import Database
+    from<T extends string>(
       table: T
-    ): T extends keyof Database['public']['Tables'] 
-      ? PostgrestQueryBuilder<Database['public']['Tables'][T]['Row']> 
-      : PostgrestQueryBuilder<any>;
+    ): PostgrestQueryBuilder<any>;
     
     rpc<T extends string>(
       fn: T,
@@ -20,6 +19,3 @@ declare module '@supabase/supabase-js' {
     ): PostgrestFilterBuilder<any>;
   }
 }
-
-// Reference the global Database interface that's defined in the generated Supabase types
-// without importing it directly, which would cause the duplicate identifier error
