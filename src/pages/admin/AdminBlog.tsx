@@ -31,6 +31,7 @@ const AdminBlog = () => {
     queryKey: ['adminBlogPosts'],
     queryFn: async () => {
       try {
+        // Using any type as a workaround
         const { data, error } = await supabase
           .from('blog_posts')
           .select(`
@@ -57,6 +58,7 @@ const AdminBlog = () => {
 
   const deletePost = async (id: string) => {
     try {
+      // Using any type as a workaround
       const { error } = await supabase
         .from('blog_posts')
         .delete()

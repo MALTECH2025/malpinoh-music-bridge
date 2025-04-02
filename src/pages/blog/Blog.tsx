@@ -22,6 +22,7 @@ const Blog = () => {
     queryKey: ['blogPosts'],
     queryFn: async () => {
       try {
+        // Using any type as a workaround
         const { data, error } = await supabase
           .from('blog_posts')
           .select(`

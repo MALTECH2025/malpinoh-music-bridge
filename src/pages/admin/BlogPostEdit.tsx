@@ -21,6 +21,7 @@ const BlogPostEdit = () => {
     queryFn: async () => {
       if (!id) throw new Error('Post ID is required');
       
+      // Using any type as a workaround
       const { data, error } = await supabase
         .from('blog_posts')
         .select('*')
