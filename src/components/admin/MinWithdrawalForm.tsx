@@ -47,16 +47,28 @@ const MinWithdrawalForm = () => {
   useEffect(() => {
     const fetchMinWithdrawal = async () => {
       try {
-        // Using the any type to bypass TypeScript checking for this custom table
         const { data, error } = await supabase
-          .from('system_settings' as any)
+          .from('system_settings')
           .select('value')
           .eq('key', 'minimum_withdrawal')
           .single();
 
-        if (error) throw error;
-
-        if (data) {
+        if (error) {
+          // If error is "No rows found", create the setting with default value
+          if (error.code === 'PGRST116') {
+            await supabase
+              .from('system_settings')
+              .insert({
+                key: 'minimum_withdrawal',
+                value: { amount: 10 },
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              });
+            form.setValue('minAmount', 10);
+          } else {
+            throw error;
+          }
+        } else if (data) {
           const minAmount = data.value.amount || 10;
           form.setValue('minAmount', minAmount);
         }
@@ -74,15 +86,36 @@ const MinWithdrawalForm = () => {
     try {
       setIsSubmitting(true);
 
-      const { error } = await supabase
-        .from('system_settings' as any)
-        .update({
-          value: { amount: values.minAmount },
-          updated_at: new Date().toISOString()
-        })
-        .eq('key', 'minimum_withdrawal');
-
-      if (error) throw error;
+      const { data, error: checkError } = await supabase
+        .from('system_settings')
+        .select('id')
+        .eq('key', 'minimum_withdrawal')
+        .single();
+      
+      if (checkError && checkError.code === 'PGRST116') {
+        // Insert if not exists
+        const { error: insertError } = await supabase
+          .from('system_settings')
+          .insert({
+            key: 'minimum_withdrawal',
+            value: { amount: values.minAmount },
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+        
+        if (insertError) throw insertError;
+      } else {
+        // Update if exists
+        const { error: updateError } = await supabase
+          .from('system_settings')
+          .update({
+            value: { amount: values.minAmount },
+            updated_at: new Date().toISOString()
+          })
+          .eq('key', 'minimum_withdrawal');
+        
+        if (updateError) throw updateError;
+      }
 
       toast.success(`Minimum withdrawal amount set to $${values.minAmount.toFixed(2)}`);
     } catch (error) {

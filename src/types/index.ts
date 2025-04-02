@@ -1,64 +1,73 @@
 
-export enum ReleaseStatus {
-  PENDING = 'Pending',
-  APPROVED = 'Approved',
-  REJECTED = 'Rejected'
+// Project Types
+
+// Authentication Types
+export interface AuthUser {
+  id: string;
+  email: string;
+  name?: string;
 }
 
+// Release Types
 export interface Release {
   id: string;
   title: string;
-  artist: string;
-  userId?: string; // Make optional to handle data from Supabase
-  status: ReleaseStatus | string; // Support string values coming from Supabase
-  coverArt?: string | null; // Make optional and allow null
-  audioFile?: string; // Make optional to handle data from Supabase
-  genre?: string; // Make optional to handle data from Supabase
-  releaseDate?: string; // Make optional to handle data from Supabase
-  createdAt: string;
-  upc?: string;
-  isrc?: string;
-  platforms?: string[]; // Add platforms field from Supabase
-  rejectionReason?: string; // Add rejection reason field
-  additionalAudioFiles?: any; // Add additional audio files support
+  artist_id: string;
+  release_date: string;
+  platforms: string[];
+  status: "Pending" | "Approved" | "Rejected";
+  cover_art_url?: string | null;
+  audio_file_url?: string | null;
+  upc?: string | null;
+  isrc?: string | null;
 }
 
+export interface ReleaseFormValues {
+  title: string;
+  release_date: Date;
+  platforms: string[];
+  cover_art?: File;
+  audio_file?: File;
+}
+
+// Earnings Types
+export interface Earning {
+  id: string;
+  amount: number;
+  status: "Pending" | "Paid";
+  date: string;
+}
+
+// Withdrawal Types
 export interface Withdrawal {
   id: string;
   userId: string;
   amount: number;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: "PENDING" | "APPROVED" | "REJECTED";
   createdAt: string;
   processedAt?: string;
   accountName: string;
   accountNumber: string;
 }
 
-// Ensure WithdrawalFormValues has all required fields (no optional fields)
 export interface WithdrawalFormValues {
   amount: number;
   accountName: string;
   accountNumber: string;
 }
 
-export interface DashboardStats {
-  totalReleases: number;
-  pendingReleases: number;
-  approvedReleases: number;
-  rejectedReleases: number;
-  totalEarnings: number;
-  availableBalance: number;
-}
-
-export interface AdminStats extends DashboardStats {
-  totalUsers: number;
-  pendingWithdrawals: number;
-}
-
-// Add system settings interface
-export interface SystemSettings {
+// System Settings Types
+export interface SystemSetting {
   id: string;
   key: string;
   value: any;
+  created_at: string;
   updated_at: string;
+}
+
+// Form Values Types
+export interface ResetPasswordFormValues {
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
 }

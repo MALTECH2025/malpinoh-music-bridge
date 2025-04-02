@@ -63,32 +63,30 @@ const ArtistEarningsForm = ({ artistId, artistName, onSuccess }: ArtistEarningsF
 
       if (earningsError) throw earningsError;
 
-      // 2. Update artist balances using direct updates instead of rpc
-      const { error: artistError } = await supabase
+      // 2. Fetch current balances
+      const { data: artistData, error: getError } = await supabase
+        .from('artists')
+        .select('total_earnings, available_balance, wallet_balance')
+        .eq('id', artistId)
+        .single();
+      
+      if (getError) throw getError;
+
+      // 3. Update artist balances with calculated values
+      const totalEarnings = (artistData.total_earnings || 0) + values.amount;
+      const availableBalance = (artistData.available_balance || 0) + values.amount;
+      const walletBalance = (artistData.wallet_balance || 0) + values.amount;
+
+      const { error: updateError } = await supabase
         .from('artists')
         .update({
-          total_earnings: supabase.rpc('increment', { 
-            x: values.amount, 
-            row_id: artistId, 
-            table_name: 'artists', 
-            column_name: 'total_earnings' 
-          }),
-          available_balance: supabase.rpc('increment', { 
-            x: values.amount, 
-            row_id: artistId, 
-            table_name: 'artists', 
-            column_name: 'available_balance' 
-          }),
-          wallet_balance: supabase.rpc('increment', { 
-            x: values.amount, 
-            row_id: artistId, 
-            table_name: 'artists', 
-            column_name: 'wallet_balance' 
-          })
+          total_earnings: totalEarnings,
+          available_balance: availableBalance,
+          wallet_balance: walletBalance
         })
         .eq('id', artistId);
 
-      if (artistError) throw artistError;
+      if (updateError) throw updateError;
 
       toast.success(`Added $${values.amount.toFixed(2)} to ${artistName}'s earnings`);
       form.reset();

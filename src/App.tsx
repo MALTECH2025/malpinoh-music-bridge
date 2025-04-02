@@ -20,6 +20,11 @@ import ManageArtists from "./pages/admin/ManageArtists";
 import AdminWithdrawals from "./pages/admin/AdminWithdrawals";
 import AdminSettings from "./pages/admin/AdminSettings";
 import { AuthProvider } from "./contexts/AuthContext";
+import Terms from "./pages/legal/Terms";
+import Privacy from "./pages/legal/Privacy";
+import Copyright from "./pages/legal/Copyright";
+import Legal from "./pages/legal/Legal";
+import ResetPassword from "./pages/settings/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +41,12 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            
+            {/* Legal Pages */}
+            <Route path="/legal" element={<Legal />} />
+            <Route path="/legal/terms" element={<Terms />} />
+            <Route path="/legal/privacy" element={<Privacy />} />
+            <Route path="/legal/copyright" element={<Copyright />} />
 
             {/* Artist Dashboard Routes */}
             <Route path="/dashboard" element={<Dashboard />} />
@@ -43,6 +54,7 @@ const App = () => (
             <Route path="/releases" element={<Releases />} />
             <Route path="/earnings" element={<Earnings />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/settings/reset-password" element={<ResetPassword />} />
 
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminDashboard />} />

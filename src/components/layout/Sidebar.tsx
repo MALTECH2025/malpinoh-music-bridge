@@ -1,110 +1,127 @@
 
+import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
-import { Link, useLocation } from "react-router-dom";
-import { Calendar, DollarSign, Music, Settings, Upload, Users } from "lucide-react";
+import {
+  BarChart3,
+  Upload,
+  Music2,
+  DollarSign,
+  Settings,
+  Users,
+  FileCheck,
+  CreditCard,
+  GanttChart,
+  BookText,
+} from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
 
-interface SidebarItemProps {
-  href: string;
-  icon: React.ReactNode;
-  title: string;
-  isActive?: boolean;
+interface SidebarProps {
+  className?: string;
+  isCollapsed?: boolean;
 }
 
-const SidebarItem = ({ href, icon, title, isActive = false }: SidebarItemProps) => {
+const Sidebar = ({ className, isCollapsed = false }: SidebarProps) => {
+  const { user } = useAuth();
+  
+  const isAdmin = user?.isAdmin;
+
+  const navItems = isAdmin
+    ? [
+        { href: "/admin", label: "Overview", icon: BarChart3 },
+        { href: "/admin/artists", label: "Artists", icon: Users },
+        { href: "/admin/releases", label: "Releases", icon: FileCheck },
+        { href: "/admin/withdrawals", label: "Withdrawals", icon: CreditCard },
+        { href: "/admin/settings", label: "Settings", icon: Settings },
+      ]
+    : [
+        { href: "/dashboard", label: "Dashboard", icon: GanttChart },
+        { href: "/upload", label: "Upload", icon: Upload },
+        { href: "/releases", label: "Releases", icon: Music2 },
+        { href: "/earnings", label: "Earnings", icon: DollarSign },
+        { href: "/settings", label: "Settings", icon: Settings },
+      ];
+  
+  // Add legal links at the bottom for all users
+  const legalItems = [
+    { href: "/legal", label: "Legal", icon: BookText },
+  ];
+
   return (
-    <Link
-      to={href}
+    <div
       className={cn(
-        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent",
-        isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+        "bg-background pb-12 border-r flex flex-col h-screen sticky top-0",
+        isCollapsed ? "w-[80px]" : "w-[240px]",
+        className
       )}
     >
-      {icon}
-      <span>{title}</span>
-    </Link>
-  );
-};
-
-const Sidebar = () => {
-  const { user } = useAuth();
-  const { pathname } = useLocation();
-
-  const isAdmin = user?.isAdmin;
-  const isActive = (path: string) => pathname === path;
-
-  const artistLinks = [
-    {
-      href: "/dashboard",
-      icon: <Music className="h-4 w-4" />,
-      title: "Dashboard",
-    },
-    {
-      href: "/releases",
-      icon: <Calendar className="h-4 w-4" />,
-      title: "Releases",
-    },
-    {
-      href: "/upload",
-      icon: <Upload className="h-4 w-4" />,
-      title: "Upload Music",
-    },
-    {
-      href: "/earnings",
-      icon: <DollarSign className="h-4 w-4" />,
-      title: "Earnings & Withdrawals",
-    },
-    {
-      href: "/settings",
-      icon: <Settings className="h-4 w-4" />,
-      title: "Settings",
-    },
-  ];
-
-  const adminLinks = [
-    {
-      href: "/admin",
-      icon: <Music className="h-4 w-4" />,
-      title: "Admin Dashboard",
-    },
-    {
-      href: "/admin/artists",
-      icon: <Users className="h-4 w-4" />,
-      title: "Manage Artists",
-    },
-    {
-      href: "/admin/releases",
-      icon: <Calendar className="h-4 w-4" />,
-      title: "Manage Releases",
-    },
-    {
-      href: "/admin/withdrawals",
-      icon: <DollarSign className="h-4 w-4" />,
-      title: "Manage Withdrawals",
-    },
-    {
-      href: "/admin/settings",
-      icon: <Settings className="h-4 w-4" />,
-      title: "Settings",
-    },
-  ];
-
-  const links = isAdmin ? adminLinks : artistLinks;
-
-  return (
-    <aside className="sticky top-16 z-30 hidden h-[calc(100vh-4rem)] w-56 shrink-0 border-r md:block">
-      <div className="flex h-full flex-col gap-2 p-4">
-        {links.map((link) => (
-          <SidebarItem
-            key={link.href}
-            href={link.href}
-            icon={link.icon}
-            title={link.title}
-            isActive={isActive(link.href)}
-          />
-        ))}
+      <div className="flex-1">
+        <div className="px-3 py-2 mb-8">
+          <h2 className={cn("mb-2 px-4 text-lg font-semibold tracking-tight", 
+            isCollapsed && "sr-only"
+          )}>
+            Navigation
+          </h2>
+          <div className="space-y-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.href}
+                  to={item.href}
+                  className={({ isActive }) =>
+                    cn(
+                      buttonVariants({ variant: "ghost" }),
+                      "w-full justify-start",
+                      isActive
+                        ? "bg-accent text-accent-foreground"
+                        : "hover:bg-accent hover:text-accent-foreground",
+                      isCollapsed && "justify-center px-2"
+                    )
+                  }
+                >
+                  <Icon className={cn("h-4 w-4", isCollapsed ? "mr-0" : "mr-2")} />
+                  {!isCollapsed && <span>{item.label}</span>}
+                </NavLink>
+              );
+            })}
+          </div>
+        </div>
       </div>
-    </aside>
+      
+      {/* Legal links section */}
+      <div className="px-3 py-2 mt-auto">
+        <h2 className={cn("mb-2 px-4 text-lg font-semibold tracking-tight", 
+          isCollapsed && "sr-only"
+        )}>
+          Resources
+        </h2>
+        <div className="space-y-1">
+          {legalItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.href}
+                to={item.href}
+                className={({ isActive }) =>
+                  cn(
+                    buttonVariants({ variant: "ghost" }),
+                    "w-full justify-start",
+                    isActive
+                      ? "bg-accent text-accent-foreground"
+                      : "hover:bg-accent hover:text-accent-foreground",
+                    isCollapsed && "justify-center px-2"
+                  )
+                }
+              >
+                <Icon className={cn("h-4 w-4", isCollapsed ? "mr-0" : "mr-2")} />
+                {!isCollapsed && <span>{item.label}</span>}
+              </NavLink>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 };
 

@@ -19,6 +19,8 @@ import {
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { Link } from "react-router-dom";
+import { KeyRound } from "lucide-react";
 
 const profileFormSchema = z.object({
   name: z.string().min(2, {
@@ -112,13 +114,21 @@ const Settings = () => {
         
         <Card className="mt-6">
           <CardHeader>
-            <CardTitle>Password</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <KeyRound className="h-5 w-5" />
+              Password
+            </CardTitle>
             <CardDescription>
               Change your password
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button variant="outline">Change password</Button>
+            <p className="text-sm text-muted-foreground mb-4">
+              Keep your account secure by regularly updating your password. Your password should be at least 8 characters long and include a mix of letters, numbers, and symbols.
+            </p>
+            <Button variant="outline" asChild>
+              <Link to="/settings/reset-password">Change password</Link>
+            </Button>
           </CardContent>
         </Card>
         
