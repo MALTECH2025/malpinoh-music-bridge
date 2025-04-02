@@ -15,10 +15,10 @@ const Logo = ({ size = "medium", className = "" }: LogoProps) => {
     large: "text-4xl",
   };
 
-  const iconSize = {
-    small: 16,
-    medium: 24,
-    large: 32,
+  const iconSizes = {
+    small: 24,
+    medium: 32,
+    large: 48,
   };
 
   return (
@@ -26,11 +26,12 @@ const Logo = ({ size = "medium", className = "" }: LogoProps) => {
       to="/" 
       className={`flex items-center gap-2 font-bold ${sizeClasses[size]} ${className}`}
     >
-      <div className="flex items-center gap-1 text-brand-purple">
-        <Music size={iconSize[size]} />
-        <MusicWave isPlaying={true} className="h-4" />
-      </div>
-      <span className="bg-gradient-to-r from-brand-purple to-brand-blue bg-clip-text text-transparent">
+      <img 
+        src="/lovable-uploads/73d53c0c-7084-4da6-b01e-36e78e3ad480.png" 
+        alt="MalpinohDistro Logo" 
+        className={`w-${iconSizes[size] === 24 ? "6" : iconSizes[size] === 32 ? "8" : "12"} h-${iconSizes[size] === 24 ? "6" : iconSizes[size] === 32 ? "8" : "12"}`}
+      />
+      <span className="bg-gradient-to-r from-red-600 to-black bg-clip-text text-transparent">
         MalpinohDistro
       </span>
     </Link>

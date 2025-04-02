@@ -25,6 +25,7 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const formSchema = z.object({
   minAmount: z.coerce.number()
@@ -47,6 +48,9 @@ const MinWithdrawalForm = () => {
   useEffect(() => {
     const fetchMinWithdrawal = async () => {
       try {
+        setIsLoading(true);
+        console.log("Fetching minimum withdrawal setting");
+
         const { data, error } = await supabase
           .from('system_settings')
           .select('value')
@@ -54,8 +58,10 @@ const MinWithdrawalForm = () => {
           .single();
 
         if (error) {
+          console.error('Error fetching minimum withdrawal:', error);
           // If error is "No rows found", create the setting with default value
           if (error.code === 'PGRST116') {
+            console.log("Setting not found, creating default");
             await supabase
               .from('system_settings')
               .insert({
@@ -69,11 +75,13 @@ const MinWithdrawalForm = () => {
             throw error;
           }
         } else if (data) {
-          const minAmount = data.value.amount || 10;
+          console.log("Minimum withdrawal setting found:", data);
+          const minAmount = data.value?.amount || 10;
           form.setValue('minAmount', minAmount);
         }
       } catch (error) {
         console.error('Error fetching minimum withdrawal:', error);
+        toast.error('Failed to load minimum withdrawal setting');
       } finally {
         setIsLoading(false);
       }
@@ -85,6 +93,7 @@ const MinWithdrawalForm = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsSubmitting(true);
+      console.log("Updating minimum withdrawal amount to:", values.minAmount);
 
       const { data, error: checkError } = await supabase
         .from('system_settings')
@@ -93,6 +102,7 @@ const MinWithdrawalForm = () => {
         .single();
       
       if (checkError && checkError.code === 'PGRST116') {
+        console.log("Setting not found, creating new");
         // Insert if not exists
         const { error: insertError } = await supabase
           .from('system_settings')
@@ -103,8 +113,12 @@ const MinWithdrawalForm = () => {
             updated_at: new Date().toISOString()
           });
         
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error("Insert error:", insertError);
+          throw insertError;
+        }
       } else {
+        console.log("Setting found, updating existing record");
         // Update if exists
         const { error: updateError } = await supabase
           .from('system_settings')
@@ -114,7 +128,10 @@ const MinWithdrawalForm = () => {
           })
           .eq('key', 'minimum_withdrawal');
         
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error("Update error:", updateError);
+          throw updateError;
+        }
       }
 
       toast.success(`Minimum withdrawal amount set to $${values.minAmount.toFixed(2)}`);
@@ -127,7 +144,7 @@ const MinWithdrawalForm = () => {
   };
 
   if (isLoading) {
-    return <Card className="min-h-[200px] flex items-center justify-center"><p>Loading...</p></Card>;
+    return <Card className="min-h-[200px] flex items-center justify-center"><LoadingSpinner size={24} /></Card>;
   }
 
   return (
@@ -168,7 +185,7 @@ const MinWithdrawalForm = () => {
           </CardContent>
           <CardFooter>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Save Changes"}
+              {isSubmitting ? <><LoadingSpinner size={16} className="mr-2" /> Saving...</> : "Save Changes"}
             </Button>
           </CardFooter>
         </form>

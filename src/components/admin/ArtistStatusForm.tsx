@@ -57,14 +57,18 @@ const ArtistStatusForm = ({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      status: (currentStatus as "active" | "paused" | "banned"),
-      reason: currentReason,
+      status: (currentStatus as "active" | "paused" | "banned") || "active",
+      reason: currentReason || "",
     },
   });
 
   // Update form values when props change
   useEffect(() => {
-    form.setValue("status", (currentStatus as "active" | "paused" | "banned"));
+    const validStatus = ["active", "paused", "banned"].includes(currentStatus) 
+      ? currentStatus as "active" | "paused" | "banned"
+      : "active";
+      
+    form.setValue("status", validStatus);
     form.setValue("reason", currentReason || "");
   }, [currentStatus, currentReason, form]);
 
@@ -75,6 +79,7 @@ const ArtistStatusForm = ({
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsSubmitting(true);
+      console.log("Updating artist status:", artistId, "New status:", values.status);
 
       const updateData: Record<string, any> = {
         status: values.status,
@@ -88,18 +93,23 @@ const ArtistStatusForm = ({
         updateData.ban_reason = null;
       }
 
+      console.log("Update data:", updateData);
+
       const { error } = await supabase
         .from('artists')
         .update(updateData)
         .eq('id', artistId);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Update artist status error:", error);
+        throw error;
+      }
 
       toast.success(`${artistName}'s status updated to ${values.status}`);
       onSuccess?.();
     } catch (error) {
       console.error('Error updating artist status:', error);
-      toast.error('Failed to update artist status');
+      toast.error('Failed to update artist status. Please check console for details.');
     } finally {
       setIsSubmitting(false);
     }

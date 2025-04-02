@@ -51,6 +51,7 @@ const ArtistEarningsForm = ({ artistId, artistName, onSuccess }: ArtistEarningsF
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsSubmitting(true);
+      console.log("Adding earnings for artist:", artistId, "Amount:", values.amount);
 
       // 1. Add to earnings table
       const { error: earningsError } = await supabase
@@ -61,7 +62,10 @@ const ArtistEarningsForm = ({ artistId, artistName, onSuccess }: ArtistEarningsF
           status: 'Paid'
         });
 
-      if (earningsError) throw earningsError;
+      if (earningsError) {
+        console.error("Earnings insert error:", earningsError);
+        throw earningsError;
+      }
 
       // 2. Fetch current balances
       const { data: artistData, error: getError } = await supabase
@@ -70,13 +74,21 @@ const ArtistEarningsForm = ({ artistId, artistName, onSuccess }: ArtistEarningsF
         .eq('id', artistId)
         .single();
       
-      if (getError) throw getError;
+      if (getError) {
+        console.error("Get artist error:", getError);
+        throw getError;
+      }
 
-      // 3. Update artist balances with calculated values
-      const totalEarnings = (artistData.total_earnings || 0) + values.amount;
-      const availableBalance = (artistData.available_balance || 0) + values.amount;
-      const walletBalance = (artistData.wallet_balance || 0) + values.amount;
+      console.log("Current artist data:", artistData);
+      
+      // 3. Calculate new balances
+      const totalEarnings = (parseFloat(artistData?.total_earnings || '0') || 0) + values.amount;
+      const availableBalance = (parseFloat(artistData?.available_balance || '0') || 0) + values.amount;
+      const walletBalance = (parseFloat(artistData?.wallet_balance || '0') || 0) + values.amount;
 
+      console.log("New balances:", {totalEarnings, availableBalance, walletBalance});
+
+      // 4. Update artist balances with calculated values
       const { error: updateError } = await supabase
         .from('artists')
         .update({
@@ -86,14 +98,17 @@ const ArtistEarningsForm = ({ artistId, artistName, onSuccess }: ArtistEarningsF
         })
         .eq('id', artistId);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error("Update artist error:", updateError);
+        throw updateError;
+      }
 
       toast.success(`Added $${values.amount.toFixed(2)} to ${artistName}'s earnings`);
-      form.reset();
+      form.reset({amount: 0});
       onSuccess?.();
     } catch (error) {
       console.error('Error adding earnings:', error);
-      toast.error('Failed to add earnings');
+      toast.error('Failed to add earnings. Please check console for details.');
     } finally {
       setIsSubmitting(false);
     }
