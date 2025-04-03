@@ -53,42 +53,32 @@ const ArtistEarningsForm = ({ artistId, artistName, onSuccess }: ArtistEarningsF
       setIsSubmitting(true);
       console.log("Adding earnings for artist:", artistId, "Amount:", values.amount);
 
-      // 1. Add to earnings table
-      const { error: earningsError } = await supabase
-        .from('earnings')
-        .insert({
-          artist_id: artistId,
-          amount: values.amount,
-          status: 'Paid'
-        });
-
-      if (earningsError) {
-        console.error("Earnings insert error:", earningsError);
-        throw earningsError;
-      }
-
-      // 2. Fetch current balances
-      const { data: artistData, error: getError } = await supabase
+      // 1. First fetch current balances to ensure we have the latest data
+      const { data: artistData, error: fetchError } = await supabase
         .from('artists')
         .select('total_earnings, available_balance, wallet_balance')
         .eq('id', artistId)
         .single();
       
-      if (getError) {
-        console.error("Get artist error:", getError);
-        throw getError;
+      if (fetchError) {
+        console.error("Error fetching artist data:", fetchError);
+        throw fetchError;
       }
 
       console.log("Current artist data:", artistData);
       
-      // 3. Calculate new balances
-      const totalEarnings = (parseFloat(artistData?.total_earnings || '0') || 0) + values.amount;
-      const availableBalance = (parseFloat(artistData?.available_balance || '0') || 0) + values.amount;
-      const walletBalance = (parseFloat(artistData?.wallet_balance || '0') || 0) + values.amount;
+      // 2. Calculate new balances - handle nulls/undefined properly
+      const currentTotalEarnings = artistData?.total_earnings || 0;
+      const currentAvailableBalance = artistData?.available_balance || 0;
+      const currentWalletBalance = artistData?.wallet_balance || 0;
+      
+      const totalEarnings = Number(currentTotalEarnings) + values.amount;
+      const availableBalance = Number(currentAvailableBalance) + values.amount;
+      const walletBalance = Number(currentWalletBalance) + values.amount;
 
       console.log("New balances:", {totalEarnings, availableBalance, walletBalance});
 
-      // 4. Update artist balances with calculated values
+      // 3. Update artist balances with calculated values
       const { error: updateError } = await supabase
         .from('artists')
         .update({
@@ -103,12 +93,26 @@ const ArtistEarningsForm = ({ artistId, artistName, onSuccess }: ArtistEarningsF
         throw updateError;
       }
 
+      // 4. Add to earnings table
+      const { error: earningsError } = await supabase
+        .from('earnings')
+        .insert({
+          artist_id: artistId,
+          amount: values.amount,
+          status: 'Paid'
+        });
+
+      if (earningsError) {
+        console.error("Earnings insert error:", earningsError);
+        throw earningsError;
+      }
+
       toast.success(`Added $${values.amount.toFixed(2)} to ${artistName}'s earnings`);
       form.reset({amount: 0});
       onSuccess?.();
     } catch (error) {
       console.error('Error adding earnings:', error);
-      toast.error('Failed to add earnings. Please check console for details.');
+      toast.error('Failed to add earnings. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
