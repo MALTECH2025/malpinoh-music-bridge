@@ -120,7 +120,7 @@ declare namespace Database {
         updated_at: string;
         cover_image_url: string | null;
         audio_url: string | null;
-        rich_content: any | null; // Changed to support rich content
+        rich_content: any | null; // Added to support rich content
       };
       Insert: {
         id?: string;
@@ -132,7 +132,7 @@ declare namespace Database {
         updated_at?: string;
         cover_image_url?: string | null;
         audio_url?: string | null;
-        rich_content?: any | null; // Changed to support rich content
+        rich_content?: any | null; // Added to support rich content
       };
       Update: {
         id?: string;
@@ -144,7 +144,7 @@ declare namespace Database {
         updated_at?: string;
         cover_image_url?: string | null;
         audio_url?: string | null;
-        rich_content?: any | null; // Changed to support rich content
+        rich_content?: any | null; // Added to support rich content
       };
     };
   }

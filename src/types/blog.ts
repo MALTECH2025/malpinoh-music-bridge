@@ -10,7 +10,7 @@ export interface BlogPost {
   updated_at: string;
   cover_image_url?: string | null;
   audio_url?: string | null;
-  rich_content?: any | null; // Added for rich content support
+  rich_content?: any | null; // This field now exists in the database
   tags?: BlogTag[];
   author_name?: string;
 }
