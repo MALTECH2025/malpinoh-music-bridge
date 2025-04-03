@@ -1,35 +1,14 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import {
-  Bold,
-  Italic,
-  Underline,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  AlignJustify,
-  Heading1,
-  Heading2,
-  Heading3,
-  Image as ImageIcon,
-  Video,
-  Upload,
-  Play
-} from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import FormatToolbar from './editor/FormatToolbar';
+import MediaPreviewGrid from './editor/MediaPreviewGrid';
+import { convertToHtml, parseContentBlocks, MediaItem } from './editor/editorUtils';
 
 interface RichTextEditorProps {
   initialContent?: string;
   onContentChange: (content: string, richContent: any) => void;
-}
-
-interface MediaItem {
-  type: 'image' | 'video' | 'audio';
-  url: string;
-  caption?: string;
 }
 
 const RichTextEditor = ({ initialContent = '', onContentChange }: RichTextEditorProps) => {
@@ -117,54 +96,9 @@ const RichTextEditor = ({ initialContent = '', onContentChange }: RichTextEditor
     }, 0);
   };
 
-  // Convert markdown to HTML for preview
-  const convertToHtml = (text: string) => {
-    // Basic markdown to HTML conversion
-    let html = text
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/# (.*?)$/gm, '<h1>$1</h1>')
-      .replace(/## (.*?)$/gm, '<h2>$1</h2>')
-      .replace(/### (.*?)$/gm, '<h3>$1</h3>')
-      .replace(/\n/g, '<br>');
-    
-    // Add media items
-    mediaUploads.forEach((media, index) => {
-      const mediaPlaceholder = `{{media-${index}}}`;
-      let mediaHtml = '';
-      
-      if (media.type === 'image') {
-        mediaHtml = `<figure class="my-4">
-          <img src="${media.url}" alt="${media.caption || ''}" class="max-w-full rounded-lg" />
-          ${media.caption ? `<figcaption class="text-sm text-center mt-2">${media.caption}</figcaption>` : ''}
-        </figure>`;
-      } else if (media.type === 'video') {
-        mediaHtml = `<figure class="my-4">
-          <video controls class="max-w-full rounded-lg">
-            <source src="${media.url}" type="video/mp4">
-            Your browser does not support video playback.
-          </video>
-          ${media.caption ? `<figcaption class="text-sm text-center mt-2">${media.caption}</figcaption>` : ''}
-        </figure>`;
-      } else if (media.type === 'audio') {
-        mediaHtml = `<figure class="my-4">
-          <audio controls class="w-full">
-            <source src="${media.url}" type="audio/mpeg">
-            Your browser does not support audio playback.
-          </audio>
-          ${media.caption ? `<figcaption class="text-sm text-center mt-2">${media.caption}</figcaption>` : ''}
-        </figure>`;
-      }
-      
-      html = html.replace(mediaPlaceholder, mediaHtml);
-    });
-    
-    return html;
-  };
-
   const handleContentChange = (newContent: string) => {
     setContent(newContent);
-    setPreviewHtml(convertToHtml(newContent));
+    setPreviewHtml(convertToHtml(newContent, mediaUploads));
     
     // Update rich content object
     const updatedRichContent = {
@@ -174,26 +108,6 @@ const RichTextEditor = ({ initialContent = '', onContentChange }: RichTextEditor
     
     setRichContent(updatedRichContent);
     onContentChange(newContent, updatedRichContent);
-  };
-
-  const parseContentBlocks = (text: string) => {
-    // Here we would have more sophisticated parsing
-    // This is a simple implementation
-    const lines = text.split('\n');
-    return lines.map(line => {
-      if (line.startsWith('# ')) {
-        return { type: 'h1', content: line.substring(2) };
-      } else if (line.startsWith('## ')) {
-        return { type: 'h2', content: line.substring(3) };
-      } else if (line.startsWith('### ')) {
-        return { type: 'h3', content: line.substring(4) };
-      } else if (line.includes('{{media-')) {
-        const mediaIndex = parseInt(line.match(/{{media-(\d+)}}/)?.[1] || '0');
-        return { type: 'media', mediaIndex };
-      } else {
-        return { type: 'paragraph', content: line };
-      }
-    });
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -222,8 +136,8 @@ const RichTextEditor = ({ initialContent = '', onContentChange }: RichTextEditor
     if (textarea) {
       const cursorPos = textarea.selectionStart;
       const newContent = content.substring(0, cursorPos) + 
-                          `\n${placeholder}\n` + 
-                          content.substring(cursorPos);
+                        `\n${placeholder}\n` + 
+                        content.substring(cursorPos);
       
       handleContentChange(newContent);
     }
@@ -247,159 +161,23 @@ const RichTextEditor = ({ initialContent = '', onContentChange }: RichTextEditor
   const handleTabChange = (value: string) => {
     setSelectedTab(value);
     if (value === 'preview') {
-      setPreviewHtml(convertToHtml(content));
+      setPreviewHtml(convertToHtml(content, mediaUploads));
     }
   };
 
   return (
     <div className="space-y-4">
-      {/* Formatting Toolbar */}
-      <div className="flex flex-wrap items-center gap-1 border-b pb-2">
-        <Button 
-          type="button" 
-          variant="ghost" 
-          size="sm"
-          onClick={() => applyFormat('bold')}
-          className={activeFormat.bold ? "bg-accent" : ""}
-        >
-          <Bold className="h-4 w-4" />
-        </Button>
-        <Button 
-          type="button" 
-          variant="ghost" 
-          size="sm"
-          onClick={() => applyFormat('italic')}
-          className={activeFormat.italic ? "bg-accent" : ""}
-        >
-          <Italic className="h-4 w-4" />
-        </Button>
-        <Button 
-          type="button" 
-          variant="ghost" 
-          size="sm"
-          onClick={() => applyFormat('underline')}
-          className={activeFormat.underline ? "bg-accent" : ""}
-        >
-          <Underline className="h-4 w-4" />
-        </Button>
-        
-        <div className="w-px h-6 bg-border mx-1" />
-        
-        <Button 
-          type="button" 
-          variant="ghost" 
-          size="sm"
-          onClick={() => applyFormat('h1')}
-        >
-          <Heading1 className="h-4 w-4" />
-        </Button>
-        <Button 
-          type="button" 
-          variant="ghost" 
-          size="sm"
-          onClick={() => applyFormat('h2')}
-        >
-          <Heading2 className="h-4 w-4" />
-        </Button>
-        <Button 
-          type="button" 
-          variant="ghost" 
-          size="sm"
-          onClick={() => applyFormat('h3')}
-        >
-          <Heading3 className="h-4 w-4" />
-        </Button>
-        
-        <div className="w-px h-6 bg-border mx-1" />
-        
-        <Button 
-          type="button" 
-          variant="ghost" 
-          size="sm"
-          onClick={() => applyFormat('align-left')}
-          className={activeFormat.align === 'left' ? "bg-accent" : ""}
-        >
-          <AlignLeft className="h-4 w-4" />
-        </Button>
-        <Button 
-          type="button" 
-          variant="ghost" 
-          size="sm"
-          onClick={() => applyFormat('align-center')}
-          className={activeFormat.align === 'center' ? "bg-accent" : ""}
-        >
-          <AlignCenter className="h-4 w-4" />
-        </Button>
-        <Button 
-          type="button" 
-          variant="ghost" 
-          size="sm"
-          onClick={() => applyFormat('align-right')}
-          className={activeFormat.align === 'right' ? "bg-accent" : ""}
-        >
-          <AlignRight className="h-4 w-4" />
-        </Button>
-        <Button 
-          type="button" 
-          variant="ghost" 
-          size="sm"
-          onClick={() => applyFormat('align-justify')}
-          className={activeFormat.align === 'justify' ? "bg-accent" : ""}
-        >
-          <AlignJustify className="h-4 w-4" />
-        </Button>
-        
-        <div className="w-px h-6 bg-border mx-1" />
-        
-        <Button 
-          type="button" 
-          variant="ghost" 
-          size="sm"
-          asChild
-        >
-          <label className="cursor-pointer">
-            <ImageIcon className="h-4 w-4 mr-2" />
-            Add Media
-            <input
-              type="file"
-              accept="image/*,video/*,audio/*"
-              className="hidden"
-              onChange={handleImageUpload}
-            />
-          </label>
-        </Button>
-      </div>
+      <FormatToolbar
+        activeFormat={activeFormat}
+        onFormatClick={applyFormat}
+        onMediaUpload={handleImageUpload}
+      />
       
-      {/* Media Previews */}
-      {mediaUploads.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 my-4">
-          {mediaUploads.map((media, index) => (
-            <div key={index} className="border rounded-md p-3 space-y-2">
-              {media.type === 'image' && (
-                <img src={media.url} alt="" className="w-full h-32 object-cover rounded" />
-              )}
-              {media.type === 'video' && (
-                <div className="relative bg-black rounded h-32 flex items-center justify-center">
-                  <Video className="h-10 w-10 text-muted-foreground opacity-50" />
-                  <Play className="h-6 w-6 absolute text-white" />
-                </div>
-              )}
-              {media.type === 'audio' && (
-                <div className="bg-muted rounded h-32 flex items-center justify-center">
-                  <Play className="h-8 w-8 text-muted-foreground" />
-                </div>
-              )}
-              <Input
-                placeholder="Caption (optional)"
-                value={media.caption || ''}
-                onChange={(e) => handleMediaCaptionChange(index, e.target.value)}
-              />
-            </div>
-          ))}
-        </div>
-      )}
+      <MediaPreviewGrid
+        mediaItems={mediaUploads}
+        onCaptionChange={handleMediaCaptionChange}
+      />
 
-      {/* Editor Tabs */}
       <Tabs value={selectedTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="write">Write</TabsTrigger>
