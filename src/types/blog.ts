@@ -10,8 +10,9 @@ export interface BlogPost {
   updated_at: string;
   cover_image_url?: string | null;
   audio_url?: string | null;
+  rich_content?: any | null; // Added for rich content support
   tags?: BlogTag[];
-  author_name?: string; // Added this field to fix the error in BlogPost.tsx
+  author_name?: string;
 }
 
 // Blog tag type
@@ -35,6 +36,8 @@ export interface BlogPostFormValues {
   audio_file?: File;
   published: boolean;
   tags: string[];
+  rich_content?: any;
+  media_files?: File[];
 }
 
 // Referencing types from database, but not re-exporting Database to avoid duplication

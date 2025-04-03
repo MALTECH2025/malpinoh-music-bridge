@@ -109,6 +109,44 @@ declare namespace Database {
         isrc?: string | null;
       };
     };
+    blog_posts: {
+      Row: {
+        id: string;
+        title: string;
+        content: string;
+        author_id: string;
+        published: boolean;
+        created_at: string;
+        updated_at: string;
+        cover_image_url: string | null;
+        audio_url: string | null;
+        rich_content: any | null; // Changed to support rich content
+      };
+      Insert: {
+        id?: string;
+        title: string;
+        content: string;
+        author_id: string;
+        published?: boolean;
+        created_at?: string;
+        updated_at?: string;
+        cover_image_url?: string | null;
+        audio_url?: string | null;
+        rich_content?: any | null; // Changed to support rich content
+      };
+      Update: {
+        id?: string;
+        title?: string;
+        content?: string;
+        author_id?: string;
+        published?: boolean;
+        created_at?: string;
+        updated_at?: string;
+        cover_image_url?: string | null;
+        audio_url?: string | null;
+        rich_content?: any | null; // Changed to support rich content
+      };
+    };
   }
 
   interface Enums {

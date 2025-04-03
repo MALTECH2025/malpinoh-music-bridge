@@ -1,26 +1,18 @@
-
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { Upload, Headphones, Trash, ImageIcon, Music } from 'lucide-react';
+import { Upload, Trash, ImageIcon, Music } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
-import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
 import { BlogPostFormValues, BlogPost } from '@/types';
+import RichTextEditor from './RichTextEditor';
 
 interface BlogPostEditorProps {
   post?: BlogPost;
@@ -36,6 +28,7 @@ const BlogPostEditor = ({ post }: BlogPostEditorProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState('');
+  const [richContent, setRichContent] = useState<any>(post?.rich_content || null);
   
   const form = useForm<BlogPostFormValues>({
     defaultValues: {
@@ -50,7 +43,6 @@ const BlogPostEditor = ({ post }: BlogPostEditorProps) => {
   const { data: tags } = useQuery({
     queryKey: ['blogTags'],
     queryFn: async () => {
-      // Using any type here to work around the database schema issues
       const { data, error } = await supabase
         .from('blog_tags')
         .select('*')
@@ -62,12 +54,11 @@ const BlogPostEditor = ({ post }: BlogPostEditorProps) => {
   });
   
   // Fetch post's tags if editing
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchPostTags = async () => {
       if (!post) return;
       
       try {
-        // Using any type here to work around the database schema issues
         const { data, error } = await supabase
           .from('blog_posts_tags')
           .select('blog_tags(id, name)')
@@ -84,6 +75,11 @@ const BlogPostEditor = ({ post }: BlogPostEditorProps) => {
     
     fetchPostTags();
   }, [post]);
+
+  const handleContentChange = (content: string, updatedRichContent: any) => {
+    form.setValue('content', content);
+    setRichContent(updatedRichContent);
+  };
 
   const createOrUpdatePost = async (formData: BlogPostFormValues) => {
     if (!user) {
@@ -134,6 +130,12 @@ const BlogPostEditor = ({ post }: BlogPostEditorProps) => {
         audio_url = data.publicUrl;
       }
       
+      // Handle media files in rich content
+      if (richContent && richContent.mediaItems) {
+        // In a real app, you would upload the media files to storage here
+        // For now, we'll just keep the rich content as is
+      }
+      
       const postData = {
         title: formData.title,
         content: formData.content,
@@ -141,13 +143,14 @@ const BlogPostEditor = ({ post }: BlogPostEditorProps) => {
         cover_image_url,
         audio_url,
         published: formData.published,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        rich_content: richContent
       };
       
       let postId = post?.id;
       
       if (post) {
-        // Update existing post - using any as a workaround
+        // Update existing post
         const { error } = await supabase
           .from('blog_posts')
           .update(postData)
@@ -155,7 +158,7 @@ const BlogPostEditor = ({ post }: BlogPostEditorProps) => {
           
         if (error) throw error;
       } else {
-        // Create new post - using any as a workaround
+        // Create new post
         const { data, error } = await supabase
           .from('blog_posts')
           .insert([postData])
@@ -169,7 +172,6 @@ const BlogPostEditor = ({ post }: BlogPostEditorProps) => {
       if (postId) {
         // Remove existing tags if editing
         if (post) {
-          // Using any as a workaround
           await supabase
             .from('blog_posts_tags')
             .delete()
@@ -183,7 +185,6 @@ const BlogPostEditor = ({ post }: BlogPostEditorProps) => {
             tag_id: tagId
           }));
           
-          // Using any as a workaround
           const { error } = await supabase
             .from('blog_posts_tags')
             .insert(tagRelations);
@@ -199,7 +200,6 @@ const BlogPostEditor = ({ post }: BlogPostEditorProps) => {
   };
   
   const createTag = async (name: string) => {
-    // Using any as a workaround
     const { data, error } = await supabase
       .from('blog_tags')
       .insert([{ name }])
@@ -328,24 +328,13 @@ const BlogPostEditor = ({ post }: BlogPostEditorProps) => {
             )}
           />
           
-          <FormField
-            control={form.control}
-            name="content"
-            rules={{ required: "Content is required" }}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Content</FormLabel>
-                <FormControl>
-                  <Textarea 
-                    placeholder="Post content" 
-                    className="min-h-[200px]" 
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <FormItem>
+            <FormLabel>Content</FormLabel>
+            <RichTextEditor
+              initialContent={post?.content || ''}
+              onContentChange={handleContentChange}
+            />
+          </FormItem>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Cover Image */}
@@ -424,7 +413,7 @@ const BlogPostEditor = ({ post }: BlogPostEditorProps) => {
               ) : (
                 <div className="flex items-center justify-center border-2 border-dashed rounded-md aspect-video bg-muted">
                   <div className="text-center">
-                    <Headphones className="mx-auto h-12 w-12 text-muted-foreground" />
+                    <Music className="mx-auto h-12 w-12 text-muted-foreground" />
                     <div className="mt-2">
                       <Button
                         type="button"

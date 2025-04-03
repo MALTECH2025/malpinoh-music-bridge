@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Badge } from "@/components/ui/badge";
@@ -64,6 +63,107 @@ const BlogPost = () => {
       variant: "destructive"
     });
   }
+
+  // Renders rich content if available, otherwise falls back to standard content
+  const renderContent = () => {
+    if (!post) return null;
+    
+    // If we have rich content with blocks, render it specially
+    if (post.rich_content && post.rich_content.blocks && post.rich_content.blocks.length > 0) {
+      return renderRichContent(post.rich_content);
+    }
+    
+    // Otherwise, just render the standard content
+    return (
+      <div 
+        className="prose prose-sm sm:prose lg:prose-lg max-w-none"
+        dangerouslySetInnerHTML={{ __html: post.content }}
+      />
+    );
+  };
+
+  // Render rich content with blocks and media items
+  const renderRichContent = (richContent: any) => {
+    if (!richContent || !richContent.blocks) return null;
+    
+    const { blocks, mediaItems = [] } = richContent;
+    
+    return (
+      <div className="prose prose-sm sm:prose lg:prose-lg max-w-none">
+        {blocks.map((block: any, index: number) => {
+          if (block.type === 'h1') {
+            return <h1 key={index}>{block.content}</h1>;
+          } else if (block.type === 'h2') {
+            return <h2 key={index}>{block.content}</h2>;
+          } else if (block.type === 'h3') {
+            return <h3 key={index}>{block.content}</h3>;
+          } else if (block.type === 'media' && mediaItems && mediaItems[block.mediaIndex]) {
+            const media = mediaItems[block.mediaIndex];
+            return renderMediaItem(media, index);
+          } else if (block.content) {
+            // Handle paragraph with different alignments
+            let alignment = 'text-left';
+            if (block.content.includes('text-align: center')) {
+              alignment = 'text-center';
+            } else if (block.content.includes('text-align: right')) {
+              alignment = 'text-right';
+            } else if (block.content.includes('text-align: justify')) {
+              alignment = 'text-justify';
+            }
+            
+            // Clean up the content if it has HTML tags
+            let content = block.content;
+            if (content.includes('<div')) {
+              content = content.replace(/<div[^>]*>(.*?)<\/div>/g, '$1');
+            }
+            
+            return (
+              <p key={index} className={alignment}>
+                {content}
+              </p>
+            );
+          }
+          return null;
+        })}
+      </div>
+    );
+  };
+
+  // Render a media item (image, video, or audio)
+  const renderMediaItem = (media: any, key: number) => {
+    if (!media) return null;
+    
+    if (media.type === 'image') {
+      return (
+        <figure key={key} className="my-8">
+          <img src={media.url} alt={media.caption || ''} className="rounded-lg mx-auto" />
+          {media.caption && <figcaption className="text-center mt-2 text-sm text-muted-foreground">{media.caption}</figcaption>}
+        </figure>
+      );
+    } else if (media.type === 'video') {
+      return (
+        <figure key={key} className="my-8">
+          <video controls className="w-full rounded-lg">
+            <source src={media.url} type="video/mp4" />
+            Your browser does not support video playback.
+          </video>
+          {media.caption && <figcaption className="text-center mt-2 text-sm text-muted-foreground">{media.caption}</figcaption>}
+        </figure>
+      );
+    } else if (media.type === 'audio') {
+      return (
+        <figure key={key} className="my-8">
+          <audio controls className="w-full">
+            <source src={media.url} type="audio/mpeg" />
+            Your browser does not support audio playback.
+          </audio>
+          {media.caption && <figcaption className="text-center mt-2 text-sm text-muted-foreground">{media.caption}</figcaption>}
+        </figure>
+      );
+    }
+    
+    return null;
+  };
 
   return (
     <MainLayout>
@@ -130,10 +230,7 @@ const BlogPost = () => {
               </div>
             )}
             
-            <div 
-              className="prose prose-sm sm:prose lg:prose-lg max-w-none"
-              dangerouslySetInnerHTML={{ __html: post.content }}
-            />
+            {renderContent()}
           </>
         ) : (
           <div className="text-center py-12">
