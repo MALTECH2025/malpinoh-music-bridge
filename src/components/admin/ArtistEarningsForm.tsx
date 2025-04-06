@@ -93,7 +93,7 @@ const ArtistEarningsForm = ({ artistId, artistName, onSuccess }: ArtistEarningsF
         throw updateError;
       }
 
-      // 4. Add to earnings table
+      // 4. Add to earnings table - Make sure to specify the status as 'Paid' string, not enum
       const { error: earningsError } = await supabase
         .from('earnings')
         .insert({
@@ -155,7 +155,7 @@ const ArtistEarningsForm = ({ artistId, artistName, onSuccess }: ArtistEarningsF
             />
           </CardContent>
           <CardFooter>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" variant="brand" disabled={isSubmitting}>
               {isSubmitting ? "Adding..." : "Add Earnings"}
             </Button>
           </CardFooter>
