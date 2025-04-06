@@ -109,7 +109,7 @@ const ArtistStatusForm = ({
       onSuccess?.();
     } catch (error) {
       console.error('Error updating artist status:', error);
-      toast.error('Failed to update artist status. Please check console for details.');
+      toast.error('Failed to update artist status. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -187,7 +187,7 @@ const ArtistStatusForm = ({
             )}
           </CardContent>
           <CardFooter>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" variant="brand" disabled={isSubmitting}>
               {isSubmitting ? "Updating..." : "Update Status"}
             </Button>
           </CardFooter>

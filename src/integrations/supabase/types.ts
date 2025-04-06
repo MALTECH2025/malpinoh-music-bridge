@@ -12,31 +12,37 @@ export type Database = {
       artists: {
         Row: {
           available_balance: number | null
+          ban_reason: string | null
           created_at: string | null
           email: string
           id: string
           name: string
           phone: string | null
+          status: string | null
           total_earnings: number | null
           wallet_balance: number | null
         }
         Insert: {
           available_balance?: number | null
+          ban_reason?: string | null
           created_at?: string | null
           email: string
           id: string
           name: string
           phone?: string | null
+          status?: string | null
           total_earnings?: number | null
           wallet_balance?: number | null
         }
         Update: {
           available_balance?: number | null
+          ban_reason?: string | null
           created_at?: string | null
           email?: string
           id?: string
           name?: string
           phone?: string | null
+          status?: string | null
           total_earnings?: number | null
           wallet_balance?: number | null
         }

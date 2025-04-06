@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
@@ -35,52 +36,54 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            
-            {/* Blog Routes */}
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:id" element={<BlogPost />} />
-            
-            {/* Legal Pages */}
-            <Route path="/legal" element={<Legal />} />
-            <Route path="/legal/terms" element={<Terms />} />
-            <Route path="/legal/privacy" element={<Privacy />} />
-            <Route path="/legal/copyright" element={<Copyright />} />
+    <HelmetProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              
+              {/* Blog Routes */}
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:id" element={<BlogPost />} />
+              
+              {/* Legal Pages */}
+              <Route path="/legal" element={<Legal />} />
+              <Route path="/legal/terms" element={<Terms />} />
+              <Route path="/legal/privacy" element={<Privacy />} />
+              <Route path="/legal/copyright" element={<Copyright />} />
 
-            {/* Artist Dashboard Routes */}
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/upload" element={<Upload />} />
-            <Route path="/releases" element={<Releases />} />
-            <Route path="/earnings" element={<Earnings />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/settings/reset-password" element={<ResetPassword />} />
+              {/* Artist Dashboard Routes */}
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/upload" element={<Upload />} />
+              <Route path="/releases" element={<Releases />} />
+              <Route path="/earnings" element={<Earnings />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/settings/reset-password" element={<ResetPassword />} />
 
-            {/* Admin Routes */}
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/artists" element={<ManageArtists />} />
-            <Route path="/admin/releases" element={<AdminReleases />} />
-            <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
-            <Route path="/admin/settings" element={<AdminSettings />} />
-            <Route path="/admin/blog" element={<AdminBlog />} />
-            <Route path="/admin/blog/create" element={<BlogPostCreate />} />
-            <Route path="/admin/blog/edit/:id" element={<BlogPostEdit />} />
+              {/* Admin Routes */}
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/artists" element={<ManageArtists />} />
+              <Route path="/admin/releases" element={<AdminReleases />} />
+              <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
+              <Route path="/admin/blog" element={<AdminBlog />} />
+              <Route path="/admin/blog/create" element={<BlogPostCreate />} />
+              <Route path="/admin/blog/edit/:id" element={<BlogPostEdit />} />
 
-            {/* Catch-all Route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
+              {/* Catch-all Route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </HelmetProvider>
   </QueryClientProvider>
 );
 

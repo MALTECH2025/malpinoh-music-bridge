@@ -1,5 +1,6 @@
 
 import { useEffect, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -103,8 +104,22 @@ const ManageArtists = () => {
 
   return (
     <MainLayout requireAuth adminOnly>
+      <Helmet>
+        <title>Manage Artists | MalpinohDistro - Music Distribution Platform</title>
+        <meta name="description" content="Efficiently manage all artists on MalpinohDistro. Control earnings, statuses, and balances for your music distribution platform." />
+        <meta name="keywords" content="music distribution, artist management, music platform, digital music distribution" />
+        <meta property="og:title" content="Manage Artists | MalpinohDistro" />
+        <meta property="og:description" content="Efficiently manage all artists on our music distribution platform. Control earnings, statuses, and balances." />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:title" content="Manage Artists | MalpinohDistro" />
+        <meta name="twitter:description" content="Efficiently manage all artists on our music distribution platform." />
+      </Helmet>
+      
       <div className="space-y-6">
-        <h2 className="text-3xl font-bold tracking-tight">Manage Artists</h2>
+        <h1 className="text-3xl font-bold tracking-tight">Manage Artists</h1>
+        <p className="text-muted-foreground">
+          Manage artist accounts, control earnings, and update account statuses for all music creators on the platform.
+        </p>
         
         {loading ? (
           <div className="flex justify-center p-8">
