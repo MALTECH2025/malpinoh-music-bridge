@@ -84,7 +84,7 @@ const LoginForm = () => {
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
+        <Button type="submit" className="w-full" variant="brand" disabled={isSubmitting}>
           {isSubmitting ? <LoadingSpinner size={20} /> : "Sign In"}
         </Button>
       </form>

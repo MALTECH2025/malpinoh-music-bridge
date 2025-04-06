@@ -31,13 +31,13 @@ const Login = () => {
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <div className="text-sm text-center text-muted-foreground">
-              <Link to="/forgot-password" className="underline underline-offset-4 hover:text-primary">
+              <Link to="/forgot-password" className="underline underline-offset-4 hover:text-red-600">
                 Forgot your password?
               </Link>
             </div>
             <div className="text-sm text-center text-muted-foreground">
               Don't have an account?{" "}
-              <Link to="/register" className="underline underline-offset-4 hover:text-primary">
+              <Link to="/register" className="underline underline-offset-4 hover:text-red-600">
                 Sign up
               </Link>
             </div>

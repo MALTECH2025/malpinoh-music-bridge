@@ -76,7 +76,7 @@ const ForgotPasswordForm = () => {
           )}
         />
 
-        <Button type="submit" className="w-full mt-2" disabled={isSubmitting}>
+        <Button type="submit" className="w-full mt-2" variant="brand" disabled={isSubmitting}>
           {isSubmitting ? <LoadingSpinner size={20} /> : "Send Reset Link"}
         </Button>
       </form>
