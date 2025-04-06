@@ -31,6 +31,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, CheckCircle, PauseCircle } from "lucide-react";
+import EmailService from "@/services/EmailService";
 
 const formSchema = z.object({
   status: z.enum(["active", "paused", "banned"]),
@@ -95,6 +96,19 @@ const ArtistStatusForm = ({
 
       console.log("Update data:", updateData);
 
+      // First get the artist's email to send notification
+      const { data: artistData, error: artistError } = await supabase
+        .from('artists')
+        .select('email')
+        .eq('id', artistId)
+        .single();
+      
+      if (artistError) {
+        console.error("Error fetching artist email:", artistError);
+        throw artistError;
+      }
+
+      // Update artist status
       const { error } = await supabase
         .from('artists')
         .update(updateData)
@@ -103,6 +117,28 @@ const ArtistStatusForm = ({
       if (error) {
         console.error("Update artist status error:", error);
         throw error;
+      }
+
+      // Send email notification about status change
+      if (values.status !== currentStatus && artistData?.email) {
+        try {
+          await EmailService.sendAccountStatusEmail(
+            {
+              id: artistId,
+              email: artistData.email,
+              name: artistName,
+              isAdmin: false,
+              emailVerified: true,
+              balance: 0
+            },
+            values.status,
+            values.reason
+          );
+          console.log("Account status notification email sent");
+        } catch (emailError) {
+          console.error("Failed to send status notification email:", emailError);
+          // Continue execution even if email fails
+        }
       }
 
       toast.success(`${artistName}'s status updated to ${values.status}`);

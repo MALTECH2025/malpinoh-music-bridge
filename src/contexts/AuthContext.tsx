@@ -3,6 +3,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { Session } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import EmailService from '@/services/EmailService';
 
 export interface User {
   id: string;
@@ -11,6 +12,7 @@ export interface User {
   isAdmin: boolean;
   emailVerified: boolean;
   balance: number;
+  status?: string;
 }
 
 interface AuthContextType {
@@ -59,6 +61,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           }, 0);
         } else {
           setUser(null);
+          setLoading(false);
         }
       }
     );
@@ -106,7 +109,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         name: artistData.name,
         isAdmin: roleData || false,
         emailVerified: true, // Supabase handles email verification
-        balance: artistData.wallet_balance || 0
+        balance: artistData.wallet_balance || 0,
+        status: artistData.status
       };
       
       setUser(userData);
@@ -157,6 +161,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       if (error) throw error;
       
+      // Send welcome email
+      if (data.user) {
+        await EmailService.sendWelcomeEmail({
+          email,
+          name
+        });
+      }
+      
       toast.success('Welcome to MalpinohDistro!', {
         description: data.session ? 'Account created successfully!' : 'Check your email for a verification link.'
       });
@@ -180,17 +192,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const requestPasswordReset = async (email: string) => {
     setLoading(true);
     try {
+      // Generate the reset URL with your website domain
+      const resetUrl = `${window.location.origin}/reset-password`;
+      
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: resetUrl,
       });
       
       if (error) throw error;
       
-      // Don't reveal if the email exists or not for security reasons
+      // We don't need to send a custom email as Supabase will handle this
+      // But we log success message either way for security
       toast.success('If your email is registered, you will receive password reset instructions.');
     } catch (error: any) {
-      toast.error('Failed to process request');
-      throw error;
+      console.error('Password reset request error:', error);
+      // For security, always show the same message
+      toast.success('If your email is registered, you will receive password reset instructions.');
     } finally {
       setLoading(false);
     }

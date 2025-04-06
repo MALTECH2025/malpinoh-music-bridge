@@ -11,6 +11,7 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Upload from "./pages/dashboard/Upload";
 import Releases from "./pages/dashboard/Releases";
@@ -26,7 +27,7 @@ import Terms from "./pages/legal/Terms";
 import Privacy from "./pages/legal/Privacy";
 import Copyright from "./pages/legal/Copyright";
 import Legal from "./pages/legal/Legal";
-import ResetPassword from "./pages/settings/ResetPassword";
+import ResetPasswordSettings from "./pages/settings/ResetPassword";
 import Blog from "./pages/blog/Blog";
 import BlogPost from "./pages/blog/BlogPost";
 import AdminBlog from "./pages/admin/AdminBlog"; 
@@ -57,6 +58,7 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               
               {/* Blog Routes */}
               <Route path="/blog" element={<Blog />} />
@@ -74,7 +76,7 @@ const App = () => (
               <Route path="/releases" element={<Releases />} />
               <Route path="/earnings" element={<Earnings />} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="/settings/reset-password" element={<ResetPassword />} />
+              <Route path="/settings/reset-password" element={<ResetPasswordSettings />} />
 
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminDashboard />} />
